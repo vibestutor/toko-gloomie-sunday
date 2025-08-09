@@ -1,0 +1,42 @@
+# Node modules
+/node_modules
+
+# Vendor folder (library PHP)
+ /vendor
+
+# Laravel storage dan cache
+/storage/*.key
+/public/storage
+/public/hot
+/public/build
+/storage/pail
+
+# Environment files (jangan ikut upload)
+/.env
+.env.backup
+.env.production
+
+# Logs
+*.log
+
+# IDE & Editor folders
+/.idea
+/.vscode
+/.fleet
+/.phpactor.json
+/.zed
+
+# PHPUnit cache & testing
+/.phpunit.result.cache
+/.phpunit.cache
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Composer auth file
+/auth.json
+
+# Homestead config
+Homestead.json
+Homestead.yaml
