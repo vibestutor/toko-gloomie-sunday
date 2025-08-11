@@ -23,6 +23,8 @@ class CategorySeeder extends Seeder
         Category::create(['name' => 'Accessories', 'slug' => 'accessories']);           // ID: 8
         Category::create(['name' => 'BREAKER', 'slug' => 'breaker']);           // ID: 9 
         Category::create(['name' => 'Jersey', 'slug' => 'jersey']);           // ID: 10
-        Category::create(['name' => 'Boxy without pocket', 'slug' => 'boxy-without-pocket']);  //ID: 11
+        Category::create(['name' => 'Hoodie Boxy Without Pocket', 'slug' => 'boxy-without-pocket']);  //ID: 11
+        Category::create(['name' => 'Hooide Boxy Printing', 'slug' => 'hoodie-boxy-printing']);  //ID: 12
+        Category::create(['name' => 'T-Shirt Boxy Printing', 'slug' => 't-shirt-boxy-printing']);  //ID: 13
     }
 }
