@@ -737,7 +737,7 @@ header .desktop-nav-menu .dropdown-content a:hover {
 /* END HALAMAN CONTACT */
 
 /* ======================================== */
-/* GAYA HALAMAN DETAIL PRODUK (DIRAPIKAN)   */
+/* GAYA HALAMAN DETAIL PRODUK (REVISI)      */
 /* ======================================== */
 
 .halaman-detail-produk {
@@ -747,23 +747,23 @@ header .desktop-nav-menu .dropdown-content a:hover {
 /* --- 1. STRUKTUR & LAYOUT UTAMA --- */
 .product-detail-container {
   display: flex;
-  flex-wrap: wrap; /* Agar responsif di mobile */
+  flex-wrap: wrap; /* responsif */
   gap: 40px;
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-  padding-top: 90px; /* Jarak dari navbar */
+  padding-top: 90px; /* jarak dari navbar */
 }
 .pd-gallery {
-  flex: 2; /* Kolom gambar lebih besar */
+  flex: 2; /* kolom gambar lebih besar */
   min-width: 320px;
 }
 .pd-details {
-  flex: 1; /* Kolom detail lebih kecil */
+  flex: 1;
   min-width: 300px;
 }
 
-/* --- 2. KOMPONEN GAMBAR & GALERI --- */
+/* --- 2. GALERI --- */
 .pd-main-image {
   width: 100%;
   display: block;
@@ -781,22 +781,20 @@ header .desktop-nav-menu .dropdown-content a:hover {
   border: 1px solid #000;
   cursor: pointer;
 }
-.pd-thumbnail:hover {
-  border-color: #333;
-}
+.pd-thumbnail.active { outline: 2px solid #0034b7; }
+.pd-thumbnail:hover { border-color: #333; }
 
-/* --- 3. TIPOGRAFI & TEKS --- */
+/* --- 3. TEKS --- */
 .pd-brand {
   font-size: 14px;
-  color: #888; /* Warna abu-abu */
+  color: #888;
   text-transform: uppercase;
-  letter-spacing: 1.5px; /* Jarak antar huruf */
-  margin-bottom: 5px; /* Jarak ke judul di bawahnya */
+  letter-spacing: 1.5px;
+  margin-bottom: 5px;
 }
 .pd-title {
   font-size: 28px;
-  margin-top: 0;
-  margin-bottom: 10px;
+  margin: 0 0 10px 0;
   color: #000;
 }
 .pd-price {
@@ -804,107 +802,128 @@ header .desktop-nav-menu .dropdown-content a:hover {
   margin-bottom: 20px;
   color: #2c2c2c;
 }
-.pd-size-selector h4 {
-  font-size: 14px;
-  margin-bottom: 10px;
-  text-transform: uppercase;
-  color: #000;
-}
 .pd-accordion h3 {
   font-size: 16px;
   margin: 0;
   color: #333;
 }
 .pd-accordion p {
-    white-space: pre-wrap;
-    line-height: 1.6;
-    color: #2c2c2c;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  color: #2c2c2c;
 }
 .pd-accordion .pd-accordion-item {
   border-top: 1px solid #000;
   padding: 15px 0;
 }
 
-/* --- 4. KOMPONEN INTERAKTIF (UKURAN, KUANTITAS, TOMBOL) --- */
+/* --- 4. SELECTION GROUP --- */
 .pd-selection-group {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 10px;
-  border-bottom: none;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 14px 24px;
+  align-items: center;
+  margin-bottom: 20px;
 }
+
+/* COLOR (row 1 full) */
+.pd-color-selector {
+  grid-column: 1 / span 2;
+}
+.pd-color-selector h4,
+.pd-size-selector h4,
+.pd-quantity-selector h4 {
+  font-size: 14px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  color: #000;
+}
+
+.pd-size-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* Tombol COLOR */
+.pd-color-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.pd-color-option {
+  padding: 8px 16px;
+  border: 1px solid #0034b7;
+  background: #fff;
+  color: #000;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background .15s, color .15s, transform .05s;
+  box-shadow: 0 4px 6px rgba(0,0,0,.1);
+}
+.pd-color-option:hover {
+  background: #0034b7;
+  color: #fff;
+}
+.pd-color-option.active {
+  background: #0034b7;
+  color: #fff;
+  border-color: #0034b7;
+}
+.pd-color-option:active {
+  transform: translateY(2px);
+}
+
+/* SIZE (container baris tombol) */
 .pd-size-options {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
 }
+
+/* Tombol SIZE */
 .pd-size-option {
   padding: 8px 20px;
   border: 1px solid #0034b7;
   background-color: #0034b7;
   color: #fff;
   cursor: pointer;
-  transition: all 0.2s;
   border-radius: 4px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
-.pd-size-option:hover {
-  background-color: #c1fc30;
-  border-color: #c1fc30;
-  color: #000;
-}
-.pd-size-option:active {
-  transform: translateY(2px); /* Tombol bergerak ke bawah */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Bayangan menipis */
-}
-.pd-size-option.sold-out {
-  background-color: #ccc;
-  border-color: #ccc;
-  color: #fff;
-  text-decoration: line-through;
-  cursor: not-allowed;
-}
-.pd-size-option.selected {
-  background-color: #c1fc30; /* Warna hijau limau */
-  color: #000;
-  border-color: #c1fc30;
-}
-/* Kuantitas */
-.pd-size-selector h4,
-.pd-quantity-selector h4 {
-  font-size: 14px;
-  margin-bottom: 10px;
-  text-transform: uppercase;
-  color: #000;
-}
+.pd-size-option:hover { background:#c1fc30; border-color:#c1fc30; color:#000; }
+.pd-size-option.selected { background:#c1fc30; color:#000; border-color:#c1fc30; }
+.pd-size-option.sold-out { background:#ccc; border-color:#ccc; color:#fff; text-decoration:line-through; cursor:not-allowed; }
+
+/* Grid placement biar jelas */
+.pd-size-selector { grid-column: 1; }
+.pd-quantity-selector { grid-column: 2; justify-self: end; align-self: end; }
+
+/* Qty box compact */
 .quantity-input {
-  display: flex;
-  border: 1px solid #ccc;
+  display:flex; align-items:center;
+  border:1px solid #0034b7; border-radius:6px; overflow:hidden;
+  box-shadow:0 4px 6px rgba(0,0,0,.1);
+  max-width:132px;
 }
-.quantity-input input {
-  width: 40px;
-  text-align: center;
-  border: none;
-  font-size: 16px;
-  -moz-appearance: textfield;
-}
-
-.quantity-input input::-webkit-outer-spin-button,
-.quantity-input input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
 .quantity-btn {
-  background-color: #fff;
-  border: none;
-  cursor: pointer;
-  padding: 8px 12px;
-  font-size: 16px;
-  color: #333;
+  background:#fff; border:none; cursor:pointer;
+  color:#0034b7; font-size:16px; font-weight:700;
+  padding:8px 12px; min-width:36px; transition:background .2s;
 }
+.quantity-btn:hover { background:#f3f5ff; }
+.quantity-input input {
+  width:48px; text-align:center; font-size:16px; color:#000;
+  border:none; border-left:1px solid #0034b7; border-right:1px solid #0034b7;
+  padding:8px 0; outline:none; background:#fff; -moz-appearance:textfield;
+}
+.quantity-input input::-webkit-outer-spin-button,
+.quantity-input input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
 
-/* Tombol Aksi */
+
+/* Tombol aksi */
 .pd-action-buttons {
   display: flex;
   gap: 15px;
@@ -922,7 +941,6 @@ header .desktop-nav-menu .dropdown-content a:hover {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: transform 0.1s, box-shadow 0.1s;
 }
-
 .btn-add-to-cart {
   background-color: #0034b7;
   border-color: #0034b7;
@@ -931,6 +949,7 @@ header .desktop-nav-menu .dropdown-content a:hover {
 .btn-add-to-cart:hover {
   background-color: #c1fc30;
   border-color: #c1fc30;
+  color: #000;
 }
 .btn-buy-now {
   background-color: #0034b7;
@@ -940,12 +959,20 @@ header .desktop-nav-menu .dropdown-content a:hover {
 .btn-buy-now:hover {
   background-color: #c1fc30;
   border-color: #c1fc30;
+  color: #000;
 }
 .btn-add-to-cart:active,
 .btn-buy-now:active {
-  transform: translateY(2px); /* Tombol bergerak ke bawah sedikit */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Bayangan menipis */
+  transform: translateY(2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
+@media (max-width: 768px) {
+  .pd-selection-group { grid-template-columns: 1fr; }
+  .pd-size-selector { grid-column: 1; }
+  .pd-quantity-selector { grid-column: 1; justify-self: center; }
+}
+
 
 /* ======================================== */
 /* GAYA HALAMAN KERANJANG BELANJA           */

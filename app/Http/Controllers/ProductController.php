@@ -2,48 +2,51 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product; // Memanggil Model Product
-use Illuminate\Http\Request;
+use App\Models\Product;
+use Illuminate\Support\Facades\Schema;
 
 class ProductController extends Controller
 {
     /**
-     * Menampilkan daftar semua produk (halaman katalog).
+     * Halaman katalog
      */
     public function index()
     {
-        // Ambil semua data dari tabel 'products'
-        $products = Product::all();
+        $products = Product::select(['id','name','slug','price','image_url','image_hover_url'])
+            ->latest()
+            ->paginate(12);
 
-        // Tampilkan view dan kirim data products ke dalamnya
-        return view('products.index', ['products' => $products]);
+        return view('products.index', compact('products'));
     }
 
     /**
-     * Menampilkan detail satu produk.
+     * Halaman detail produk:
+     * - Ambil SEMUA varian dari DB (hasil seeder)
+     * - Related products berdasarkan kategori
      */
     public function show(Product $product)
-    {
-        // Ambil varian warna untuk produk ini
+{
+    // Amanin kalau tabel varian belum ada
+    if (\Illuminate\Support\Facades\Schema::hasTable('product_variants')) {
+        // urutan sudah di-handle di relasi variants()
         $variants = $product->variants()
-            ->select(['id', 'color', 'image_url', 'image_hover_url', 'price', 'stock'])
-            ->orderBy('color')
+            ->select(['id','product_id','color','image_url','image_hover_url','price','stock'])
             ->get();
-
-        // Ambil 4 produk lain dari kategori yang sama,
-        // kecuali produk yang sedang dilihat saat ini.
-        $relatedProducts = Product::where('category_id', $product->category_id)
-                            ->where('id', '!=', $product->id)
-                            ->select(['id', 'name', 'slug', 'price', 'image_url', 'image_hover_url']) // Pilih hanya kolom yang perlu
-                            ->take(8)
-                            ->inRandomOrder() // Bonus: Tampilkan produk terkait secara acak setiap kali halaman dimuat
-                            ->get();
-
-        // Kirim data produk utama DAN produk terkait ke view
-        return view('products.show', [
-            'product' => $product,
-            'relatedProducts' => $relatedProducts,
-            'variants' => $variants,
-        ]);
+    } else {
+        $variants = collect();
     }
+
+    $relatedProducts = Product::where('category_id', $product->category_id)
+        ->where('id', '!=', $product->id)
+        ->select(['id','name','slug','price','image_url','image_hover_url'])
+        ->inRandomOrder()
+        ->take(8)
+        ->get();
+
+    return view('products.show', [
+        'product'         => $product,
+        'variants'        => $variants,
+        'relatedProducts' => $relatedProducts,
+    ]);
+}
 }

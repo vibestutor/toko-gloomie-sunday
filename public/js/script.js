@@ -227,37 +227,147 @@ if (logoutBtnDesktop) logoutBtnDesktop.addEventListener('click', handleLogout);
         });
     }
 
+/**
+ * ==========================================================
+ * JS HALAMAN DETAIL PRODUK
+ * File ini mengatur interaksi user di halaman detail produk,
+ * termasuk: pilih warna, pilih ukuran, atur quantity, 
+ * tombol Add to Cart, dan tombol Buy Now.
+ * ==========================================================
+ */
 
-    // =======================================================
-    // BAGIAN 2: LOGIKA KHUSUS HALAMAN DETAIL PRODUK
-    // =======================================================
-    const productDetailContainer = document.querySelector('.product-detail-container');
-    if (productDetailContainer) {
-        const minusBtn = productDetailContainer.querySelector('.minus-btn');
-        const plusBtn = productDetailContainer.querySelector('.plus-btn');
-        const quantityInput = productDetailContainer.querySelector('.quantity-input input');
-        if (plusBtn) {
-            plusBtn.addEventListener('click', () => {
-                let currentValue = parseInt(quantityInput.value);
-                quantityInput.value = currentValue + 1;
-            });
-        }
-        if (minusBtn) {
-            minusBtn.addEventListener('click', () => {
-                let currentValue = parseInt(quantityInput.value);
-                if (currentValue > 1) {
-                    quantityInput.value = currentValue - 1;
-                }
-            });
-        }
-        const sizeOptions = productDetailContainer.querySelectorAll('.pd-size-option');
-        sizeOptions.forEach(option => {
-            option.addEventListener('click', () => {
-                sizeOptions.forEach(btn => btn.classList.remove('selected'));
-                option.classList.add('selected');
-            });
-        });
+(function () {
+  'use strict';
+
+  const container = document.querySelector('.product-detail-container');
+  if (!container) return;
+
+  // ===== Helper Functions =====
+  function toInt(v, fallback) {
+    const n = parseInt(v, 10);
+    return isNaN(n) ? (fallback || 0) : n;
+  }
+  function formatRupiah(num) {
+    const n = toInt(num, 0);
+    return 'Rp ' + new Intl.NumberFormat('id-ID').format(n);
+  }
+
+  // ===== Variabel data terpilih =====
+  let selectedColor = null;
+  let selectedSize = null;
+
+  /* ===== Quantity + / - =====
+   const minusBtn = container.querySelector('.minus-btn');
+   const plusBtn  = container.querySelector('.plus-btn');
+   const quantityInput = container.querySelector('.quantity-input input');
+
+   if (plusBtn && quantityInput) {
+    plusBtn.addEventListener('click', () => {
+      quantityInput.value = toInt(quantityInput.value, 1) + 1;
+    });
+  }
+  if (minusBtn && quantityInput) {
+    minusBtn.addEventListener('click', () => {
+      const current = toInt(quantityInput.value, 1);
+      if (current > 1) quantityInput.value = current - 1;
+    });
+  } */
+
+  // ===== Pilih SIZE =====
+  const sizeOptions = container.querySelectorAll('.pd-size-option');
+  if (sizeOptions.length) {
+    sizeOptions.forEach(option => {
+      option.addEventListener('click', () => {
+        sizeOptions.forEach(btn => btn.classList.remove('selected'));
+        option.classList.add('selected');
+        selectedSize = option.textContent.trim();
+      });
+    });
+  }
+
+  // ===== Pilih COLOR =====
+  const colorButtons = container.querySelectorAll('.pd-color-option');
+  const mainImg = document.getElementById('product-image');
+  const priceEl = document.getElementById('product-price');
+
+  function setActiveColor(btn) {
+    colorButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedColor = btn.getAttribute('data-color');
+  }
+
+  if (colorButtons.length) {
+    colorButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const img   = btn.getAttribute('data-image');
+        const price = btn.getAttribute('data-price');
+
+        if (img && mainImg) mainImg.src = img;
+        if (price && priceEl) priceEl.textContent = formatRupiah(price);
+
+        setActiveColor(btn);
+      });
+    });
+    // Pilih warna pertama secara default
+    colorButtons[0].click();
+  }
+
+  // ===== Kirim ke server =====
+  async function sendToServer(action) {
+    const productId = container.getAttribute('data-product-id');
+    const qty = toInt(quantityInput.value, 1);
+
+    if (!selectedSize) {
+      alert('Pilih ukuran terlebih dahulu.');
+      return;
     }
+    if (!selectedColor) {
+      alert('Pilih warna terlebih dahulu.');
+      return;
+    }
+
+    try {
+      const res = await fetch(`/${action}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+          product_id: productId,
+          color: selectedColor,
+          size: selectedSize,
+          qty: qty
+        })
+      });
+
+      if (!res.ok) throw new Error('Gagal mengirim data.');
+
+      if (action === 'add-to-cart') {
+        window.location.href = '/cart';
+      } else if (action === 'buy-now') {
+        window.location.href = '/checkout';
+      }
+
+    } catch (err) {
+      console.error(err);
+      alert('Terjadi kesalahan, coba lagi.');
+    }
+  }
+
+  // ===== Event tombol aksi =====
+  const addToCartBtn = container.querySelector('.btn-add-to-cart');
+  if (addToCartBtn) {
+    addToCartBtn.addEventListener('click', () => sendToServer('add-to-cart'));
+  }
+
+  const buyNowBtn = container.querySelector('.btn-buy-now');
+  if (buyNowBtn) {
+    buyNowBtn.addEventListener('click', () => sendToServer('buy-now'));
+  }
+
+})();
+
 
     // =======================================================
     // BAGIAN 3: LOGIKA KHUSUS HALAMAN KERANJANG BELANJA
