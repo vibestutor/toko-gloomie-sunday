@@ -34,51 +34,53 @@
         <h1 id="product-title" class="pd-title">{{ $product->name }}</h1>
         <p id="product-price" class="pd-price">Rp {{ number_format((float)$product->price, 0, ',', '.') }}</p>
 
-        {{-- COLOR --}}
-        @if(($variants ?? collect())->count())
-  <div class="pd-color-selector">
-    <h4>COLOR</h4>
-    <div class="pd-color-options" id="color-options">
-      @foreach($variants as $variant)
-        <button
-          type="button"
-          class="pd-color-option"
-          data-color="{{ $variant->color }}"
-          data-image="{{ asset($variant->image_url ?: $product->image_url) }}"
-          data-price="{{ $variant->price ?? $product->price }}">
-          {{ ucfirst(strtolower($variant->color)) }}
-        </button>
-      @endforeach
-    </div>
-  </div>
-@endif
+<div class="pd-selection-group">
 
-
-        {{-- SIZE --}}
-        @php
-            $sizes = ['M','L','XL'];
-            if (\Illuminate\Support\Str::contains(strtolower($product->name), 'xxl')) {
-                $sizes[] = 'XXL';
-            }
-        @endphp
-        <div class="pd-size-selector">
-            <h4>SELECT SIZE</h4>
-            <div class="pd-size-options">
-                @foreach($sizes as $s)
-                    <div class="pd-size-option" role="button">{{ $s }}</div>
+    {{-- COLOR --}}
+    @if(($variants ?? collect())->count())
+        <div class="pd-color-selector">
+            <h4>COLOR</h4>
+            <div class="pd-color-options" id="color-options">
+                @foreach($variants as $variant)
+                    <button
+                        type="button"
+                        class="pd-color-option"
+                        data-color="{{ $variant->color }}"
+                        data-image="{{ asset($variant->image_url ?: $product->image_url) }}"
+                        data-price="{{ $variant->price ?? $product->price }}">
+                        {{ ucfirst(strtolower($variant->color)) }}
+                    </button>
                 @endforeach
             </div>
         </div>
+    @endif
 
-        {{-- QTY --}}
-        <div class="pd-quantity-selector">
-            <h4>Qty</h4>
-            <div class="quantity-input">
-                <button class="quantity-btn minus-btn" type="button">-</button>
-                <input type="number" class="quantity-value" value="1" min="1">
-                <button class="quantity-btn plus-btn" type="button">+</button>
-            </div>
+    {{-- SIZE --}}
+@php
+    $sizes = ['M','L','XL'];
+    if (\Illuminate\Support\Str::contains(strtolower($product->name), 'xxl')) {
+        $sizes[] = 'XXL';
+    }
+@endphp
+<div class="pd-size-selector">
+    <h4>SELECT SIZE</h4>
+    <div class="pd-size-options">
+        @foreach($sizes as $s)
+            <div class="pd-size-option" role="button">{{ $s }}</div>
+        @endforeach
+    </div>
+</div>
+
+    {{-- QTY --}}
+    <div class="pd-quantity-selector">
+        <h4>Qty</h4>
+        <div class="quantity-input">
+            <button class="quantity-btn minus-btn" type="button">-</button>
+            <input type="number" class="quantity-value" value="1" min="1">
+            <button class="quantity-btn plus-btn" type="button">+</button>
         </div>
+    </div>
+
 
         {{-- TOMBOL AKSI --}}
         <div class="pd-action-buttons">

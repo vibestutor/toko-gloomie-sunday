@@ -528,6 +528,305 @@ header .desktop-nav-menu .dropdown-content a:hover {
     font-size: 13px;
 }
 
+/* end halaman index */
+
+/* ======================================== */
+/* GAYA HALAMAN DETAIL PRODUK (REVISI)      */
+/* ======================================== */
+
+.halaman-detail-produk {
+    background-color: #fff;
+}
+
+/* --- 1. STRUKTUR & LAYOUT UTAMA --- */
+.product-detail-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  padding-top: 90px;
+}
+.pd-gallery {
+  flex: 2;
+  min-width: 320px;
+}
+.pd-details {
+  flex: 1;
+  min-width: 300px;
+}
+
+/* --- 2. GALERI --- */
+.pd-main-image {
+  width: 100%;
+  display: block;
+  border: 1px solid #000;
+}
+.pd-thumbnail-images {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+.pd-thumbnail {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border: 1px solid #000;
+  cursor: pointer;
+}
+
+.pd-thumbnail.active { outline: 2px solid #0034b7; }
+.pd-thumbnail:hover { border-color: #333; }
+
+/* --- 3. TEKS --- */
+.pd-brand {
+  font-size: 14px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 5px;
+}
+.pd-title {
+  font-size: 28px;
+  margin: 0 0 10px 0;
+  color: #000;
+}
+.pd-price {
+  font-size: 22px;
+  margin-bottom: 20px;
+  color: #2c2c2c;
+}
+.pd-accordion h3 {
+  font-size: 16px;
+  margin: 0;
+  color: #333;
+}
+.pd-accordion p {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  color: #2c2c2c;
+}
+.pd-accordion .pd-accordion-item {
+  border-top: 1px solid #000;
+  padding: 15px 0;
+}
+
+.pd-selection-group {
+    display: grid;
+    grid-template-columns: 1fr auto; 
+    grid-template-rows: auto auto;
+    gap: 20px 24px; 
+    align-items: end; 
+    margin-bottom: 20px;
+}
+/* COLOR (row 1 full) */
+.pd-color-selector {
+  grid-column: 1 / span 2;
+}
+
+/*.pd-size-selector {
+    grid-column: 1;
+} */
+
+.pd-quantity-selector {
+    justify-self: end; /* Rata horizontal ke kanan */
+    align-self: end;   /* Rata vertikal ke bawah */
+}
+
+.pd-color-selector h4,
+.pd-size-selector h4,
+.pd-quantity-selector h4 {
+  font-size: 14px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  color: #000;
+}
+
+/* Tombol COLOR */
+.pd-color-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.pd-color-option {
+  padding: 8px 16px;
+  border: 1px solid #000;
+  background: #fff;
+  color: #000;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background .15s, color .15s, transform .05s;
+  box-shadow: 0 4px 6px rgba(0,0,0,.1);
+}
+.pd-color-option:hover {
+  background: #0034b7;
+  color: #fff;
+}
+.pd-color-option.active {
+  background: #0034b7;
+  color: #fff;
+  border-color: #0034b7;
+}
+.pd-color-option:active {
+  transform: translateY(2px);
+}
+
+/* SIZE (container baris tombol) */
+.pd-size-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Tombol SIZE */
+.pd-size-option {
+  padding: 8px 20px;
+  border: 1px solid #0034b7;
+  background-color: #0034b7;
+  color: #fff;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.pd-size-option:hover { background:#c1fc30; border-color:#c1fc30; color:#000; }
+.pd-size-option.selected { background:#c1fc30; color:#000; border-color:#c1fc30; }
+.pd-size-option.sold-out { background:#ccc; border-color:#ccc; color:#fff; text-decoration:line-through; cursor:not-allowed; }
+
+/* Qty box compact */
+.quantity-input {
+  display:flex;
+  align-items:center;
+  border:1px solid #000;
+  border-radius:6px;
+  overflow:hidden;
+  box-shadow:0 4px 6px rgba(0,0,0,.1);
+  max-width:132px;
+}
+.quantity-btn {
+  background:#fff;
+  border:none;
+  cursor:pointer;
+  color:#0034b7;
+  font-size:16px;
+  font-weight:700;
+  padding:8px 12px;
+  min-width:36px;
+  transition:background .2s;
+}
+.quantity-btn:hover { background:#f3f5ff; }
+.quantity-input input {
+  width:48px; text-align:center; font-size:16px; color:#000;
+  border:none; border-left:1px solid #0034b7; border-right:1px solid #0034b7;
+  padding:8px 0; outline:none; background:#fff; -moz-appearance:textfield;
+}
+.quantity-input input::-webkit-outer-spin-button,
+.quantity-input input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+
+
+/* Tombol aksi */
+.pd-action-buttons {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+.btn-add-to-cart,
+.btn-buy-now {
+  flex: 1;
+  padding: 15px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 4px;
+  text-transform: uppercase;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.btn-add-to-cart {
+  background-color: #0034b7;
+  border-color: #0034b7;
+  color: #fff;
+}
+.btn-add-to-cart:hover {
+  background-color: #c1fc30;
+  border-color: #c1fc30;
+  color: #000;
+}
+.btn-buy-now {
+  background-color: #0034b7;
+  border-color: #0034b7;
+  color: #fff;
+}
+.btn-buy-now:hover {
+  background-color: #c1fc30;
+  border-color: #c1fc30;
+  color: #000;
+}
+.btn-add-to-cart:active,
+.btn-buy-now:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+
+/* Responsif untuk Mobile */
+@media (max-width: 768px) {
+    .pd-selection-group {
+        grid-template-columns: 1fr; /* Semua pilihan menjadi 1 kolom */
+        gap: 20px;
+    }
+    
+    .pd-color-selector,
+    .pd-size-selector,
+    .pd-quantity-selector {
+        grid-column: 1; /* Pastikan semua menempati kolom tunggal */
+        justify-self: start; /* Rata kiri agar rapi di tampilan mobile */
+        align-self: start;
+    }
+}
+
+/* ====== FIX LAYOUT DESKTOP: gallery 60% : detail 40%, QTY rapih kanan ====== */
+@media (min-width: 992px) {
+  .product-detail-container { align-items: flex-start; }
+
+  /* kunci proporsi */
+  .pd-gallery { flex: 0 1 60%; }
+  .pd-details { flex: 0 1 40%; max-width: 520px; }
+
+  /* grid pilihan: kiri fleksibel, kanan (QTY) lebar tetap */
+  .pd-selection-group {
+    grid-template-columns: 1fr 160px;   /* QTY selalu pas di kanan */
+    gap: 18px 24px;
+    align-items: center;
+  }
+
+  .pd-quantity-selector {
+    justify-self: end;
+    align-self: center;
+}
+
+  .pd-quantity-selector h4 {
+    text-align: right;
+    margin-bottom: 8px;
+}
+
+  /* kotak qty jangan melebar */
+  .quantity-input { width: 132px; max-width: 132px; }
+
+  /* tombol aksi sejajar rapih */
+  .pd-action-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .pd-accordion {
+    margin-top: 20px;
+  }
+}
+
+/* ===== end halaman detail produk ===== */
+
 /* ========== FOOTER (TIDAK DIUBAH) ========== */
 .footer {
     background-color: #0034b7;
@@ -736,242 +1035,6 @@ header .desktop-nav-menu .dropdown-content a:hover {
 
 /* END HALAMAN CONTACT */
 
-/* ======================================== */
-/* GAYA HALAMAN DETAIL PRODUK (REVISI)      */
-/* ======================================== */
-
-.halaman-detail-produk {
-    background-color: #fff;
-}
-
-/* --- 1. STRUKTUR & LAYOUT UTAMA --- */
-.product-detail-container {
-  display: flex;
-  flex-wrap: wrap; /* responsif */
-  gap: 40px;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  padding-top: 90px; /* jarak dari navbar */
-}
-.pd-gallery {
-  flex: 2; /* kolom gambar lebih besar */
-  min-width: 320px;
-}
-.pd-details {
-  flex: 1;
-  min-width: 300px;
-}
-
-/* --- 2. GALERI --- */
-.pd-main-image {
-  width: 100%;
-  display: block;
-  border: 1px solid #000;
-}
-.pd-thumbnail-images {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-}
-.pd-thumbnail {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-  border: 1px solid #000;
-  cursor: pointer;
-}
-.pd-thumbnail.active { outline: 2px solid #0034b7; }
-.pd-thumbnail:hover { border-color: #333; }
-
-/* --- 3. TEKS --- */
-.pd-brand {
-  font-size: 14px;
-  color: #888;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  margin-bottom: 5px;
-}
-.pd-title {
-  font-size: 28px;
-  margin: 0 0 10px 0;
-  color: #000;
-}
-.pd-price {
-  font-size: 22px;
-  margin-bottom: 20px;
-  color: #2c2c2c;
-}
-.pd-accordion h3 {
-  font-size: 16px;
-  margin: 0;
-  color: #333;
-}
-.pd-accordion p {
-  white-space: pre-wrap;
-  line-height: 1.6;
-  color: #2c2c2c;
-}
-.pd-accordion .pd-accordion-item {
-  border-top: 1px solid #000;
-  padding: 15px 0;
-}
-
-/* --- 4. SELECTION GROUP --- */
-.pd-selection-group {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-rows: auto auto;
-  gap: 14px 24px;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-/* COLOR (row 1 full) */
-.pd-color-selector {
-  grid-column: 1 / span 2;
-}
-.pd-color-selector h4,
-.pd-size-selector h4,
-.pd-quantity-selector h4 {
-  font-size: 14px;
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  color: #000;
-}
-
-.pd-size-options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-/* Tombol COLOR */
-.pd-color-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-.pd-color-option {
-  padding: 8px 16px;
-  border: 1px solid #0034b7;
-  background: #fff;
-  color: #000;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background .15s, color .15s, transform .05s;
-  box-shadow: 0 4px 6px rgba(0,0,0,.1);
-}
-.pd-color-option:hover {
-  background: #0034b7;
-  color: #fff;
-}
-.pd-color-option.active {
-  background: #0034b7;
-  color: #fff;
-  border-color: #0034b7;
-}
-.pd-color-option:active {
-  transform: translateY(2px);
-}
-
-/* SIZE (container baris tombol) */
-.pd-size-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-/* Tombol SIZE */
-.pd-size-option {
-  padding: 8px 20px;
-  border: 1px solid #0034b7;
-  background-color: #0034b7;
-  color: #fff;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-.pd-size-option:hover { background:#c1fc30; border-color:#c1fc30; color:#000; }
-.pd-size-option.selected { background:#c1fc30; color:#000; border-color:#c1fc30; }
-.pd-size-option.sold-out { background:#ccc; border-color:#ccc; color:#fff; text-decoration:line-through; cursor:not-allowed; }
-
-/* Grid placement biar jelas */
-.pd-size-selector { grid-column: 1; }
-.pd-quantity-selector { grid-column: 2; justify-self: end; align-self: end; }
-
-/* Qty box compact */
-.quantity-input {
-  display:flex; align-items:center;
-  border:1px solid #0034b7; border-radius:6px; overflow:hidden;
-  box-shadow:0 4px 6px rgba(0,0,0,.1);
-  max-width:132px;
-}
-.quantity-btn {
-  background:#fff; border:none; cursor:pointer;
-  color:#0034b7; font-size:16px; font-weight:700;
-  padding:8px 12px; min-width:36px; transition:background .2s;
-}
-.quantity-btn:hover { background:#f3f5ff; }
-.quantity-input input {
-  width:48px; text-align:center; font-size:16px; color:#000;
-  border:none; border-left:1px solid #0034b7; border-right:1px solid #0034b7;
-  padding:8px 0; outline:none; background:#fff; -moz-appearance:textfield;
-}
-.quantity-input input::-webkit-outer-spin-button,
-.quantity-input input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
-
-
-/* Tombol aksi */
-.pd-action-buttons {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 15px;
-}
-.btn-add-to-cart,
-.btn-buy-now {
-  flex: 1;
-  padding: 15px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  border-radius: 4px;
-  text-transform: uppercase;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.1s, box-shadow 0.1s;
-}
-.btn-add-to-cart {
-  background-color: #0034b7;
-  border-color: #0034b7;
-  color: #fff;
-}
-.btn-add-to-cart:hover {
-  background-color: #c1fc30;
-  border-color: #c1fc30;
-  color: #000;
-}
-.btn-buy-now {
-  background-color: #0034b7;
-  border-color: #0034b7;
-  color: #fff;
-}
-.btn-buy-now:hover {
-  background-color: #c1fc30;
-  border-color: #c1fc30;
-  color: #000;
-}
-.btn-add-to-cart:active,
-.btn-buy-now:active {
-  transform: translateY(2px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-@media (max-width: 768px) {
-  .pd-selection-group { grid-template-columns: 1fr; }
-  .pd-size-selector { grid-column: 1; }
-  .pd-quantity-selector { grid-column: 1; justify-self: center; }
-}
 
 
 /* ======================================== */

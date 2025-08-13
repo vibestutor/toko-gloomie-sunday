@@ -1,47 +1,87 @@
 @extends('layouts.app')
-
-@section('title', 'Shopping Cart')
+@section('title','Your Cart')
 
 @section('content')
-<main class="container" style="padding-top: 100px; max-width: 1200px; margin: auto;">
-    <h1>Shopping Cart</h1>
+<main class="cart-container halaman-keranjang">
 
-    @if(session('cart') && count(session('cart')) > 0)
-        <table class="cart-table" style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr>
-                    <th style="text-align:left;">Product</th>
-                    <th>Color</th>
-                    <th>Size</th>
-                    <th>Qty</th>
-                    <th>Price</th>
-                    <th>Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                @php $grandTotal = 0; @endphp
-                @foreach(session('cart') as $item)
-                    @php
-                        $total = $item['price'] * $item['qty'];
-                        $grandTotal += $total;
-                    @endphp
-                    <tr>
-                        <td>{{ $item['name'] }}</td>
-                        <td>{{ $item['color'] }}</td>
-                        <td>{{ $item['size'] }}</td>
-                        <td>{{ $item['qty'] }}</td>
-                        <td>Rp {{ number_format($item['price'], 0, ',', '.') }}</td>
-                        <td>Rp {{ number_format($total, 0, ',', '.') }}</td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
+  <div class="cart-header">
+      <h1>YOUR CART</h1>
+  </div>
 
-        <h3 style="margin-top: 20px;">Grand Total: Rp {{ number_format($grandTotal, 0, ',', '.') }}</h3>
+  <section class="cart-items-section">
+      <div class="cart-table-header">
+          <span class="header-produk">PRODUCT</span>
+          <span class="header-jumlah">AMOUNT</span>
+          <span class="header-total">TOTAL PRICE</span>
+      </div>
 
-        <a href="{{ route('checkout.view') }}" class="btn-buy-now" style="display:inline-block; padding:10px 20px; background:#0034b7; color:white; border-radius:4px; text-decoration:none;">Proceed to Checkout</a>
-    @else
-        <p>Your cart is empty.</p>
-    @endif
+      <div class="cart-items-list">
+        @forelse($cart->items as $it)
+          <div class="cart-item">
+            <div class="item-details">
+              <img src="{{ asset($it->image_snapshot) }}" alt="">
+              <div class="item-info">
+                <h4>{{ $it->name_snapshot }}</h4>
+                <p class="item-price">Rp {{ number_format($it->price_snapshot,0,',','.') }}</p>
+                @if($it->variant) <p class="item-size">Ukuran: {{ $it->variant->size ?? '-' }}</p> @endif
+              </div>
+            </div>
+
+            <div class="item-quantity">
+              <form action="{{ route('cart.update',$it->id) }}" method="POST" class="quantity-input">
+                @csrf @method('PATCH')
+                <button class="quantity-btn" onclick="this.closest('form').querySelector('input[name=qty]').stepDown();">-</button>
+                <input type="number" name="qty" value="{{ $it->qty }}" min="1">
+                <button class="quantity-btn" onclick="this.closest('form').querySelector('input[name=qty]').stepUp();">+</button>
+              </form>
+              <form action="{{ route('cart.remove',$it->id) }}" method="POST">
+                @csrf @method('DELETE')
+                <button class="remove-btn"><i class="fas fa-trash-alt"></i></button>
+              </form>
+            </div>
+
+            <div class="item-total">
+              Rp {{ number_format($it->price_snapshot*$it->qty,0,',','.') }}
+            </div>
+          </div>
+        @empty
+          <p style="padding:20px 0;">Cart is empty.</p>
+        @endforelse
+      </div>
+  </section>
+
+  @php
+    $subtotal = $cart->items->sum(fn($i)=>$i->price_snapshot*$i->qty);
+  @endphp
+
+  <div class="cart-summary">
+    <div class="summary-box">
+      <div class="subtotal-line">
+        <span class="label">Subtotal</span>
+        <span class="value" id="subtotal-value">Rp {{ number_format($subtotal,0,',','.') }}</span>
+      </div>
+      <p class="summary-note">Taxes and shipping costs are calculated at checkout.</p>
+      <div class="cart-action-buttons">
+        <a href="{{ route('products.index') }}" class="continue-shopping-btn">Continue Shopping</a>
+        <form action="{{ route('checkout.index') }}" method="GET">
+          <button type="submit" class="checkout-btn">Check out</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {{-- modal konfirmasi (opsional, kalau mau dipakai JS) --}}
+  <div id="modal-overlay" class="hidden"></div>
+  <div id="confirmation-modal" class="hidden">
+      <h3>Remove Item?</h3>
+      <p id="modal-text">Are you sure you want to remove this item from your cart</p>
+      <div class="modal-buttons">
+          <button id="cancel-btn">Cancel</button>
+          <button id="confirm-delete-btn">Yes, Remove</button>
+      </div>
+  </div>
+
+  {{-- featured grid kamu bisa pakai komponen yang sudah ada --}}
+  @include('partials.featured-grid')
 </main>
 @endsection
