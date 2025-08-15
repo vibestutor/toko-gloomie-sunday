@@ -150,7 +150,19 @@ class CartService
         });
 
         // drop cookie token
-        Cookie::queue(Cookie::forget(self::COOKIE));
+        Cookie::queue(
+    Cookie::make(
+        self::COOKIE,
+        $cart->cart_token,
+        self::COOKIE_MINUTES,
+        '/',         // path
+        null,        // domain
+        app()->environment('production'), // secure hanya di prod (HTTPS)
+        true,        // httpOnly
+        false,       // raw
+        'Lax'        // SameSite Lax biar aman pas redirect pembayaran
+    )
+        );
     }
 
     /** hitung total live; dipakai di checkout */

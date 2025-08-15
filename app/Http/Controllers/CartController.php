@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\CartService; // <-- pakai service DB-based
+use App\Models\CartItem;
 use Illuminate\Validation\ValidationException;
 
 class CartController extends Controller
@@ -22,54 +23,64 @@ class CartController extends Controller
 
     // ==== ADD TO CART (AJAX JSON) ====
     public function store(Request $request)
-    {
-        $data = $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'variant_id' => 'nullable|exists:product_variants,id', // ganti “color/size” jadi variant_id bila perlu
-            'qty'        => 'required|integer|min:1',
-        ]);
+{
+    $data = $request->validate([
+        'product_id' => 'required|exists:products,id',
+        'variant_id' => 'nullable|exists:product_variants,id',
+        'qty'        => 'required|integer|min:1',
+    ]);
 
-        try {
-            $this->cart->add(
-                (int)$data['product_id'],
-                $data['variant_id'] ?? null,
-                (int)$data['qty']
-            );
+    try {
+        $this->cart->add(
+            (int)$data['product_id'],
+            $data['variant_id'] ?? null,
+            (int)$data['qty']
+        );
+
+        // Jika AJAX/JSON:
+        if ($request->expectsJson()) {
             return response()->json(['ok' => true]);
-        } catch (ValidationException $e) {
+        }
+
+        // Jika form biasa:
+        return redirect()->route('cart.view')->with('success', 'Item ditambahkan ke cart.');
+
+    } catch (ValidationException $e) {
+
+        if ($request->expectsJson()) {
             return response()->json([
                 'ok' => false,
                 'errors' => $e->errors(),
             ], 422);
         }
-    }
 
-    // ==== UPDATE QTY ====
-    public function update(Request $request, int $itemId)
-    {
-        $data = $request->validate(['qty' => 'required|integer|min:1']);
-        try {
-            $cart = $this->cart->updateQty($itemId, (int)$data['qty']);
-            return back()->with('ok','Quantity updated');
-        } catch (ValidationException $e) {
-            return back()->withErrors($e->errors());
-        }
+        return back()->withErrors($e->errors());
     }
-
-    // ==== REMOVE ITEM ====
-    public function remove(int $itemId)
-    {
-        $this->cart->remove($itemId);
-        return back()->with('ok','Item removed');
+}
+// ==== UPDATE QTY ====
+public function update(Request $request, CartItem $item)
+{
+    $data = $request->validate(['qty' => 'required|integer|min:1']);
+    try {
+        $this->cart->updateQty($item->id, (int)$data['qty']);  // <- perhatiin: id (huruf kecil)
+        return redirect()->route('cart.view')->with('success','Quantity diupdate.');
+    } catch (ValidationException $e) {
+        return back()->withErrors($e->errors());
     }
+}
 
-    // ==== CLEAR CART ====
-    public function clear()
-    {
-        $this->cart->clear();
-        return back()->with('ok','Cart cleared');
-    }
+public function remove(CartItem $item)
+{
+    $this->cart->remove($item->id); // <- id (huruf kecil)
+    return redirect()->route('cart.view')->with('success','Item dihapus.');
+}
 
+// ==== CLEAR CART ====
+public function clear()
+{
+    $this->cart->clear();
+    return redirect()->route('cart.view')->with('success','Cart dikosongkan.');
+}
     /**
      * Migrasi cart lama (session) ke DB sekali lalu hapus dari session.
      * Ini menjaga user yang sudah sempat add to cart sebelum upgrade.

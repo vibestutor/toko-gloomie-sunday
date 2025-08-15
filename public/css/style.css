@@ -715,12 +715,23 @@ header .desktop-nav-menu .dropdown-content a:hover {
   min-width:36px;
   transition:background .2s;
 }
-.quantity-btn:hover { background:#f3f5ff; }
-.quantity-input input {
-  width:48px; text-align:center; font-size:16px; color:#000;
-  border:none; border-left:1px solid #0034b7; border-right:1px solid #0034b7;
-  padding:8px 0; outline:none; background:#fff; -moz-appearance:textfield;
+.quantity-btn:hover {
+    background:#f3f5ff;
 }
+
+.quantity-input input {
+  width:48px;
+  text-align:center;
+  border: none;
+  font-size:16px;
+  width: 56px;
+  height: 38px;
+  text-align: center;
+  border: none;
+  font-size: 14px;
+    -moz-appearance: textfield;
+}
+
 .quantity-input input::-webkit-outer-spin-button,
 .quantity-input input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
 
@@ -1034,12 +1045,9 @@ header .desktop-nav-menu .dropdown-content a:hover {
 }
 
 /* END HALAMAN CONTACT */
-
-
-
-/* ======================================== */
-/* GAYA HALAMAN KERANJANG BELANJA           */
-/* ======================================== */
+/* ================================================= */
+/* GAYA HALAMAN KERANJANG BELANJA (REVISI FINAL V2)  */
+/* ================================================= */
 
 .halaman-keranjang {
     background-color: #fff;
@@ -1047,291 +1055,169 @@ header .desktop-nav-menu .dropdown-content a:hover {
 }
 
 .cart-container {
-    margin: 0;
+    max-width: 1200px;
+    margin: 0 auto;
     padding: 20px;
+    padding-top: 90px;
 }
 
-/* Bagian Atas: Judul dan Link */
-.cart-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-}
+/* Header Halaman Keranjang */
+.cart-header { margin-bottom: 30px; }
 .cart-header h1 {
-    font-size: 2.5em;
-    font-family: 'Oswald', sans-serif;
-    margin: 0;
-}
-.cart-header a {
-    color: #000;
-    text-decoration: underline;
-    font-family: 'Oswald', sans-serif;
+    font-size: 2.5em; font-family: 'Oswald', sans-serif; margin: 0;
+    border-bottom: 2px solid #000; padding-bottom: 10px;
 }
 
 /* Bagian Utama: Daftar Produk */
-.cart-items-section {
-    border-top: 2px solid #000;
-}
-.cart-table-header {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: 20px;
-    padding: 15px 0;
-    font-family: 'Oswald', sans-serif;
-    text-transform: uppercase;
-    font-size: 12px;
-    color: #000;
-    border-bottom: 1px solid #e5e5e5;
-}
-.cart-table-header .header-jumlah,
-.cart-table-header .header-total {
-    text-align: center;
-}
+.cart-items-section { border-top: 1px solid #e5e5e5; }
+.cart-table-header { display: none; } /* Tetap sembunyi di mobile */
+
+/* REVISI TOTAL V2: Layout untuk setiap item */
 .cart-item {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: 20px;
-    align-items: center;
     padding: 20px 0;
     border-bottom: 1px solid #e5e5e5;
+    /* --- STRUKTUR GRID MOBILE (LEBIH SEDERHANA) --- */
+    grid-template-columns: 1fr auto; /* Kolom kiri fleksibel, kanan otomatis */
+    gap: 15px 10px;
 }
 
-/* Detail Produk di Keranjang */
+/* 1. Info Produk */
 .item-details {
+    /* Tempatkan di baris pertama, rentangkan di kedua kolom */
+    grid-column: 1 / -1;
     display: flex;
-    gap: 20px;
-    align-items: center;
+    gap: 15px;
+    align-items: flex-start;
 }
 .item-details img {
-    width: 200px;
-    height: 200px;
-    object-fit: cover;
-    border: 1px solid #e5e5e5;
+    width: 100px; height: 100px; object-fit: cover;
+    border: 1px solid #e5e5e5; flex-shrink: 0;
 }
+.item-info p { margin: 0 0 5px 0; font-size: 16px; font-weight: 600; line-height: 1.4; }
 .item-info h4 {
-    font-size: 14px;
-    text-transform: uppercase;
-    color: #000;
-    margin: 0 0 5px 0;
-    font-weight: normal;
-}
-.item-info p {
-    font-size: 16px;
-    margin: 0;
-    font-weight: 600;
+    font-size: 14px; text-transform: uppercase; color: #888;
+    margin: 0 0 5px 0; font-weight: normal;
 }
 .item-info .item-price, .item-info .item-size {
-    font-size: 16px;
-    color: #000;
-    margin-top: 5px;
-    font-weight: normal;
+    font-size: 14px; color: #000; font-weight: normal;
 }
 
-/* Kuantitas & Hapus */
-.item-quantity {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
+/* 2. Formulir Kuantitas */
+.cart-item .quantity-input {
+    /* Tempatkan di baris kedua, kolom pertama */
+    grid-column: 1;
+    justify-self: start; /* Rata kiri */
 }
+/* Styling umum quantity box */
 .quantity-input {
-    display: flex;
-    border: 1px solid #ccc;
-}
-.quantity-input input {
-    width: 40px;
-    text-align: center;
-    border: none;
-    font-size: 16px;
-    -moz-appearance: textfield;
-}
-.quantity-input input::-webkit-outer-spin-button,
-.quantity-input input::-webkit-inner-spin-button {
-    -webkit-appearance: none; margin: 0;
+    display: inline-flex; align-items: center; border: 1px solid #ccc;
+    border-radius: 6px; overflow: hidden; height: 42px;
 }
 .quantity-btn {
-    background-color: #fff; border: none; cursor: pointer; padding: 8px 12px; font-size: 16px;
+    width: 40px; height: 100%; background: #f9f9f9; border: none;
+    cursor: pointer; font-size: 18px; color: #000;
+}
+.quantity-btn:hover { background: #f0f0f0; }
+.quantity-input input {
+    width: 45px; height: 100%; text-align: center; border: none;
+    border-left: 1px solid #ccc; border-right: 1px solid #ccc;
+    font-size: 14px; padding: 0; -moz-appearance: textfield;
+}
+.quantity-input input::-webkit-outer-spin-button,
+.quantity-input input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+
+/* 3. Total Harga per Item */
+.item-total {
+    /* Tempatkan di baris kedua, kolom kedua */
+    grid-column: 2;
+    font-weight: 600;
+    font-size: 16px;
+    text-align: right;
+    align-self: center; /* Sejajarkan vertikal dengan Qty box */
+    justify-self: end;  /* Rata kanan */
+}
+
+/* 4. Formulir Tombol Hapus */
+.cart-item form[id^="remove-"] {
+    /* Tempatkan di baris ketiga, rentangkan di kedua kolom */
+    grid-column: 1 / -1;
 }
 .remove-btn {
-    background: none; border: none; cursor: pointer; font-size: 16px; color: #888;
+    background:none; border: none; cursor: pointer; padding: 0;
+    font-size: 14px; color: #888; display: inline-flex; align-items: center; gap: 8px;
+    text-decoration: underline;
 }
-.item-total {
-    text-align: center;
-    font-weight: 600;
+.remove-btn:hover { color: #d9534f; }
+.remove-btn i { font-size: 14px; }
+
+
+/* Styling untuk keranjang kosong */
+.empty { text-align: center; padding: 40px 0; color: #888; }
+
+
+/* === TAMPILAN DESKTOP (769px+) - PENDEKATAN 4 KOLOM === */
+@media (min-width: 769px) {
+    /* Tampilkan header tabel */
+    .cart-table-header {
+        display: grid;
+        grid-template-columns: 3fr 1fr 1fr;
+        gap: 20px; padding: 15px 0; text-transform: uppercase;
+        font-size: 12px; border-bottom: 1px solid #e5e5e5;
+    }
+    .cart-table-header .header-jumlah { text-align: center; }
+    .cart-table-header .header-total  { text-align: right; }
+
+    /* REVISI TOTAL V2: Layout grid 4 kolom yang lugas */
+    .cart-item {
+        grid-template-columns: 3fr auto auto 1fr; /* 4 kolom: Info, Qty, Hapus, Total */
+        grid-template-rows: 1fr; /* Cukup satu baris */
+        grid-template-areas: none; /* Hapus penamaan area */
+        align-items: center; /* Sejajarkan semua item secara vertikal */
+    }
+
+    /* Penempatan setiap elemen ke kolomnya masing-masing */
+    .item-details                   { grid-column: 1; }
+    .cart-item .quantity-input      { grid-column: 2; justify-self: center; }
+    .cart-item form[id^="remove-"]  { grid-column: 3; justify-self: center; }
+    .item-total                     { grid-column: 4; justify-self: end; }
+    
+    .remove-btn { text-decoration: none; font-size: 18px; }
+    .remove-btn:hover { transform: scale(1.1); }
 }
 
-/* Bagian Bawah: Subtotal dan Checkout */
+
+/* Bagian Bawah: Subtotal dan Checkout (Tidak ada perubahan) */
 .cart-summary {
-    margin-top: 30px;
-    display: flex;
-    justify-content: flex-end;
+    margin-top: 30px; display: flex; justify-content: flex-end;
 }
 .summary-box {
-    width: 100%;
-    max-width: 500px;
-    display: flex;
-    flex-direction: column;
+    width: 100%; max-width: 450px; display: flex; flex-direction: column;
     align-items: flex-end;
 }
-.subtotal-line, .summary-note, .cart-action-buttons {
-    width: 100%;
+.subtotal-line {
+    display: flex; justify-content: space-between; margin-bottom: 10px;
+    font-size: 18px; width: 100%;
 }
-.subtotal-line  {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-    font-size: 18px;
-}
-.subtotal-line .value {
-    font-weight: bold;
-}
+.subtotal-line .value { font-weight: bold; }
 .summary-note {
-    font-size: 12px;
-    color: #000;
-    margin-bottom: 20px;
-    text-align: right;
+    font-size: 12px; color: #555; margin-bottom: 20px; text-align: right; width: 100%;
 }
-/* Wadah untuk membuat tombol sejajar */
-.cart-action-buttons {
-  display: flex;
-  gap: 10px; /* Jarak antar tombol */
+.cart-action-buttons { display: flex; gap: 15px; width: 100%; }
+.checkout-btn, .continue-shopping-btn {
+    flex: 1; padding: 15px; font-size: 14px; font-weight: bold; cursor: pointer;
+    border-radius: 4px; text-transform: uppercase; text-align: center; transition: all 0.2s;
 }
-
-/* Gaya dasar untuk kedua tombol */
-.checkout-btn,
-.continue-shopping-btn {
-  flex: 1; /* Agar kedua tombol sama lebar */
-  padding: 15px;
-  font-size: 14px;
-  font-weight: bold;
-  cursor: pointer;
-  border-radius: 4px;
-  text-transform: uppercase;
-  text-align: center;
-  transition: all 0.2s;
-}
-
-/* Gaya spesifik untuk tombol 'Check Out' (Tombol Utama) */
 .checkout-btn {
-  background-color: #0034b7;
-  border: 1px solid #0034b7;
-  color: #fff;
+    background-color: #0034b7; border: 1px solid #0034b7; color: #fff;
 }
 .checkout-btn:hover {
-  background-color: #c1fc30;
-  border-color: #c1fc30;
-  color: #000;
+    background-color: #c1fc30; border-color: #c1fc30; color: #000;
 }
-
-/* Gaya spesifik untuk tombol 'Continue Shopping' (Tombol Sekunder) */
 .continue-shopping-btn {
-  background-color: #fff;
-  border: 1px solid #ccc;
-  color: #555;
+    background-color: #fff; border: 1px solid #ccc; color: #555;
 }
-.continue-shopping-btn:hover {
-  background-color: #f0f0f0;
-  border-color: #888;
-}
-
-/* --- CSS untuk Modal Konfirmasi --- */
-.hidden {
-    display: none !important; /* Gunakan !important untuk memastikan elemen tersembunyi */
-}
-
-#modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    z-index: 1000;
-}
-
-#confirmation-modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(0, 52, 183, 0.2);
-    color: #000;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 4px 30px rgba(0,0,0,0.2);
-    z-index: 1001;
-    text-align: center;
-    width: 90%;
-    max-width: 400px;
-}
-
-#confirmation-modal h3 {
-    margin-top: 0;
-    font-family: 'Oswald', sans-serif;
-}
-
-#modal-text {
-    margin-bottom: 25px;
-    font-size: 16px;
-}
-
-.modal-buttons button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    font-family: 'Oswald', sans-serif;
-    margin: 0 10px;
-    min-width: 100px;
-}
-
-#cancel-btn,
-#confirm-delete-btn {
-    background-color: #0034b7;
-    color: #fff;
-}
-
-#cancel-btn:hover,
-#confirm-delete-btn:hover {
-    background-color: #c1fc30;
-    color: #000;
-}
-
-.view-all-container {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    padding: 30px 20px;
-    background-color: #fff;
-}
-
-.btn-view-all {
-    background-color: #0034b7;
-    color: #fff;
-    border: 1px solid #0034b7;
-    padding: 12px 40px;
-    border-radius: 4px;
-    font-weight: bold;
-    text-transform: uppercase;
-    font-size: 14px;
-    text-align: center;
-    text-decoration: none;
-    transition: all 0.2s;
-    cursor: pointer;
-}
-
-.btn-view-all:hover {
-    background-color: #c1fc30;
-    border-color: #c1fc30;
-    color: #000;
-}
+.continue-shopping-btn:hover { background-color: #f0f0f0; border-color: #888; }
 
 /* === HALAMAN PAYMENT / CHECKOUT (FINAL) === */
 
@@ -2130,14 +2016,7 @@ header .desktop-nav-menu .dropdown-content a:hover {
     .contact-container { flex-direction: column; gap: 30px; }
     .contact-form { padding-right: 0; border-right: none; border-bottom: 1px solid #ddd; padding-bottom: 30px; }
 
-    /* -- Halaman Keranjang -- */
-    .cart-table-header { display: none; }
-    .cart-item { grid-template-columns: 1fr; gap: 15px; text-align: center; }
-    .item-details { flex-direction: column; align-items: center; }
-    .item-total { margin-top: 10px; }
-    .item-total::before { content: 'Total: '; color: #000; font-weight: normal; }
-    .cart-summary { justify-content: center; }
-    .summary-box { width: 100%; }
+    /* -- mobile halaman cart -- */
 
     /* --- PENYESUAIAN UNTUK POPUP DI SEMUA LAYAR MOBILE (DIPERKUAT) --- */
     .wrapper,
@@ -2165,3 +2044,58 @@ header .desktop-nav-menu .dropdown-content a:hover {
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
+
+/* ===== Prefs (language/currency) ===== */
+.prefs{display:flex;align-items:center;gap:8px}
+.prefs .prefs-label{font-size:12px;opacity:.7}
+.prefs .prefs-select{
+  appearance:none; -webkit-appearance:none;
+  padding:6px 28px 6px 10px;
+  border:1px solid #d0d6f6; border-radius:6px;
+  background:#fff; font:600 12px/1.2 'Oswald',sans-serif;
+  min-height:32px;
+}
+
+/* Inline (desktop) di kanan header */
+.navbar-right .prefs--inline{margin-right:8px}
+
+/* Default: sembunyikan versi mobile */
+.prefs--mobile{display:none}
+
+/* Tablet & mobile: pakai versi mobile, sembunyiin inline */
+@media (max-width: 991.98px){
+  .prefs--inline{display:none}
+  .prefs--mobile{display:flex;margin:12px 0}
+  #mobile-menu .prefs{justify-content:space-between}
+  #mobile-menu .prefs .prefs-select{width:48%}
+}
+
+/* ===== Floating Lang/Currency (fab-prefs) ===== */
+/* Floating language/currency (FAB) */
+#fab-prefs { position: fixed; right: 16px; bottom: 16px; z-index: 1200; }
+.fab-prefs__btn {
+  display: flex; align-items: center; gap: 8px;
+  background: #0034b7; color: #fff; border: 0; border-radius: 999px;
+  padding: 10px 14px; cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0,0,0,.18);
+}
+.fab-prefs__chev { transition: transform .2s; }
+[aria-expanded="true"] .fab-prefs__chev { transform: rotate(180deg); }
+
+.fab-prefs__sheet {
+  position: fixed; right: 16px; bottom: 72px; width: 280px; max-height: 70vh; overflow: auto;
+  background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0,0,0,.2); padding: 12px;
+}
+.fab-prefs__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.fab-prefs__close { background: transparent; border: 0; font-size: 18px; cursor: pointer; }
+
+.fab-prefs__opt {
+  display: block; width: 100%; text-align: left;
+  padding: 10px 12px; margin-bottom: 8px; cursor: pointer;
+  border: 1px solid #eee; border-radius: 8px; background: #fff;
+}
+.fab-prefs__opt:hover { background: #f8fafc; }
+
+

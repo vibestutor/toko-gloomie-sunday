@@ -1,4 +1,6 @@
-<header id="main-header" class="{{ request()->is('/') ? '' : 'header-solid' }}">
+<header id="main-header"
+        class="site-header {{ request()->routeIs('home') ? '' : 'header-solid' }}"
+        data-home="{{ request()->routeIs('home') ? '1' : '0' }}">
     <div class="navbar-container">
         <div class="navbar-left">
             <button class="hamburger-btn" id="hamburger-btn" aria-label="Buka Menu">
@@ -28,112 +30,161 @@
             </a>
         </div>
         <div class="navbar-right">
-            <div class="search-container">
-                <input type="search" class="search-input-header" placeholder="Search...">
-                <button class="search-btn-header">
-                    <i class="fas fa-search action-icon"></i>
-                </button>
-                <div id="search-results" class="search-results"></div>
-            </div>
-            <a href="#" id="login-btn-popup" class="btnLogin-popup" aria-label="Login">
-                <i class="fas fa-user action-icon"></i>
-            </a>
-            <a href="/cart" id="cart-icon" class="cart-btn hidden" aria-label="Keranjang">
-                <i class="fas fa-shopping-bag action-icon"></i>
-            </a>
-            <a href="#" id="logout-btn-desktop" class="hidden" aria-label="Logout">
-                <i class="fas fa-sign-out-alt action-icon"></i>
-            </a>
-        </div>
-    </div>
+  <div class="search-container" data-target="search">
+    <input type="search" class="search-input-header" placeholder="Search...">
+    <button class="search-btn-header"><i class="fas fa-search action-icon"></i></button>
+    <div id="search-results" class="search-results"></div>
+  </div>
+
+  @guest
+    <a href="#" id="login-btn-popup" class="btnLogin-popup" aria-label="Login">
+      <i class="fas fa-user action-icon"></i>
+    </a>
+  @endguest
+
+  <a href="/cart" id="cart-icon" class="cart-btn" aria-label="Keranjang">
+    <i class="fas fa-shopping-bag action-icon"></i>
+  </a>
+
+  @auth
+    <a href="#" id="logout-btn-desktop" aria-label="Logout">
+      <i class="fas fa-sign-out-alt action-icon"></i>
+    </a>
+    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
+      @csrf
+    </form>
+  @endauth
+</div>
+
 </header>
 
 {{-- Kode untuk Pop-up Login/Register --}}
 <div class="wrapper">
-        <span class="icon-close">
-            <ion-icon name="close"></ion-icon>
-        </span>
-
-        <div class="form-box login">
-            <h2>Login</h2>
-            <form action="#">
-                <div class="input-box">
-    <span class="icon">
-        <ion-icon name="mail"></ion-icon>
-    </span>
-    <input type="email" required placeholder=" ">
-    <label>Email</label>
-</div>
-<div class="input-box">
-    <span class="icon">
-        <ion-icon name="lock-closed"></ion-icon>
-    </span>
-    <input type="password" required placeholder=" ">
-    <label>Password</label>
-</div>
-                <div class="remember-forgot">
-                    <label><input type="checkbox"> Remember me</label>
-                    <a href="#">Forgot Password?</a>
-                </div>
-                <button type="submit" class="btn">Login</button>
-                <div class="login-register">
-                    <p>Don't have an account? <a href="#" class="register-link">Register</a></p>
-                </div>
-            </form>
-        </div>
-
-        <div class="form-box register">
-            <h2>Registration</h2>
-            <form action="#">
-                <div class="input-box">
-                    <span class="icon">
-                        <ion-icon name="person"></ion-icon>
-                    </span>
-                    <input type="text" required>
-                    <label>Username</label>
-                </div>
-                <div class="input-box">
-                    <span class="icon">
-                        <ion-icon name="mail"></ion-icon>
-                    </span>
-                    <input type="email" required>
-                    <label>Email</label>
-                </div>
-                <div class="input-box">
-                    <span class="icon">
-                        <ion-icon name="lock-closed"></ion-icon>
-                    </span>
-                    <input type="password" required>
-                    <label>Password</label>
-                </div>
-                <div class="remember-forgot">
-                    <label><input type="checkbox"> I agree to the term & conditions</label>
-                </div>
-                <button type="submit" class="btn">Register</button>
-                <div class="login-register">
-            <p>Already have an account? <a href="#" class="login-link">Login</a></p>
-        </div>
-        </form>
-    </div>
-</div> <div id="forgot-password-wrapper" class="wrapper">
     <span class="icon-close">
         <ion-icon name="close"></ion-icon>
     </span>
-    <div class="form-box">
-        <h2>Reset Password</h2>
-        <form action="#">
-            <p class="form-intro">Enter your email address to reset your password.</p>
+
+    {{-- ===================== LOGIN ===================== --}}
+    <div class="form-box login">
+        <h2>Login</h2>
+
+        <form method="POST" action="{{ route('login') }}">
+            @csrf
+
             <div class="input-box">
-                <span class="icon">
-                    <ion-icon name="mail-outline"></ion-icon>
-                </span>
-                <input type="email" required placeholder=" ">
+                <span class="icon"><ion-icon name="mail"></ion-icon></span>
+                <input type="email" name="email" required placeholder=" " value="{{ old('email') }}">
                 <label>Email</label>
             </div>
+
+            <div class="input-box">
+                <span class="icon"><ion-icon name="lock-closed"></ion-icon></span>
+                <input type="password" name="password" required placeholder=" ">
+                <label>Password</label>
+            </div>
+
+            <div class="remember-forgot">
+                <label><input type="checkbox" name="remember"> Remember me</label>
+                <a href="#" class="forgot-link">Forgot Password?</a>
+            </div>
+
+            <button type="submit" class="btn">Login</button>
+
+            <div class="login-register">
+                <p>Don't have an account? <a href="#" class="register-link">Register</a></p>
+            </div>
+
+            {{-- error/status (opsional tampilkan ringkas) --}}
+            @if ($errors->any())
+                <div class="error">{{ $errors->first() }}</div>
+            @endif
+            @if (session('status'))
+                <div class="status">{{ session('status') }}</div>
+            @endif
+        </form>
+    </div>
+
+    {{-- ===================== REGISTER ===================== --}}
+    <div class="form-box register">
+        <h2>Registration</h2>
+
+        <form method="POST" action="{{ route('register') }}">
+            @csrf
+
+            <div class="input-box">
+                <span class="icon"><ion-icon name="person"></ion-icon></span>
+                <input type="text" name="name" required value="{{ old('name') }}">
+                <label>Username</label>
+            </div>
+
+            <div class="input-box">
+                <span class="icon"><ion-icon name="mail"></ion-icon></span>
+                <input type="email" name="email" required value="{{ old('email') }}">
+                <label>Email</label>
+            </div>
+
+            <div class="input-box">
+                <span class="icon"><ion-icon name="lock-closed"></ion-icon></span>
+                <input type="password" name="password" required>
+                <label>Password</label>
+            </div>
+
+            {{-- Breeze biasanya minta konfirmasi password --}}
+            <div class="input-box">
+                <span class="icon"><ion-icon name="lock-closed"></ion-icon></span>
+                <input type="password" name="password_confirmation" required>
+                <label>Confirm Password</label>
+            </div>
+
+            <div class="remember-forgot">
+                <label><input type="checkbox"> I agree to the term & conditions</label>
+            </div>
+
+            <button type="submit" class="btn">Register</button>
+
+            <div class="login-register">
+                <p>Already have an account? <a href="#" class="login-link">Login</a></p>
+            </div>
+
+            @if ($errors->any())
+                <div class="error">{{ $errors->first() }}</div>
+            @endif
+        </form>
+    </div>
+</div>
+
+{{-- ===================== FORGOT PASSWORD ===================== --}}
+<div id="forgot-password-wrapper" class="wrapper">
+    <span class="icon-close">
+        <ion-icon name="close"></ion-icon>
+    </span>
+
+    <div class="form-box">
+        <h2>Reset Password</h2>
+
+        <form method="POST" action="{{ route('password.email') }}">
+            @csrf
+
+            <p class="form-intro">Enter your email address to reset your password.</p>
+
+            <div class="input-box">
+                <span class="icon"><ion-icon name="mail-outline"></ion-icon></span>
+                <input type="email" name="email" required placeholder=" " value="{{ old('email') }}">
+                <label>Email</label>
+            </div>
+
             <button type="submit" class="btn">Reset</button>
+
             <div class="login-register">
                 <p><a href="#" class="login-link">Return to Login</a></p>
             </div>
+
+            @if (session('status'))
+                <div class="status">{{ session('status') }}</div>
+            @endif
+            @if ($errors->any())
+                <div class="error">{{ $errors->first() }}</div>
+            @endif
         </form>
     </div>
 </div>
@@ -142,6 +193,10 @@
 <nav class="mobile-nav" id="mobile-menu">
     <button class="close-menu-btn" id="close-menu-btn" aria-label="Tutup Menu">&times;</button>
     
+     <div class="mobile-prefs-wrap">
+    @include('partials.prefs', ['variant' => 'mobile'])
+  </div>
+
     <div class="sidebar-header">
         <a href="index.php" id="sidebar-logo" class="sidebar-profile">
             <img src="img/perlogoan/logo-gif.gif" alt="Logo Gloomie" class="profile-pic" />
