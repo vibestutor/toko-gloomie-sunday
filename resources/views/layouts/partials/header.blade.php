@@ -189,72 +189,60 @@
     </div>
 </div>
 
-{{-- Kode untuk Menu Mobile --}}
-<nav class="mobile-nav" id="mobile-menu">
-    <button class="close-menu-btn" id="close-menu-btn" aria-label="Tutup Menu">&times;</button>
-    
-     <div class="mobile-prefs-wrap">
-    @include('partials.prefs', ['variant' => 'mobile'])
-  </div>
+<nav class="mobile-nav" id="mobile-menu" aria-hidden="true">
+  <button class="close-menu-btn" id="close-menu-btn" aria-label="Tutup Menu">&times;</button>
 
-    <div class="sidebar-header">
-        <a href="index.php" id="sidebar-logo" class="sidebar-profile">
-            <img src="img/perlogoan/logo-gif.gif" alt="Logo Gloomie" class="profile-pic" />
-            <span class="profile-name">Gloomie</span>
-        </a>
-        <a href="#" id="sidebar-user-profile" class="sidebar-profile hidden">
-            <img src="https://via.placeholder.com/50" alt="Foto Profil" class="profile-pic">
-            <div class="user-info">
-                <span class="profile-name">[Nama Pengguna]</span>
-                <span class="profile-email">[Email Pengguna]</span>
-            </div>
-        </a>
-    </div>
+ <div class="sidebar-header">
+  <a href="/" id="sidebar-logo" class="sidebar-profile">
+    <img src="{{ asset('img/perlogoan/logo-gif.gif') }}" alt="Logo Gloomie" class="profile-pic" />
+    <span class="profile-name">Gloomie</span>
+  </a>
 
-    <ul class="sidebar-menu">
-        <li class="dropdown">
-            <a href="#" class="dropbtn-mobile">
-                <i class="fas fa-store"></i>
-                <span>SHOP</span>
-                <i class="fas fa-chevron-down arrow-icon"></i>
-            </a>
-            <ul class="dropdown-content">
-                <li><a href="All-Product.php">ALL PRODUCT</a></li>
-                <li><a href="top.php">TOP</a></li>
-                <li><a href="outers.php">OUTERS</a></li>
-                <li><a href="bottom.php">BOTTOM</a></li>
-            </ul>
-        </li>
-        <li>
-            <a href="galery.php">
-                <i class="fas fa-images"></i>
-                <span>GALLERY</span>
-            </a>
-        </li>
-        <li>
-            <a href="about.php">
-                <i class="fas fa-info-circle"></i>
-                <span>ABOUT</span>
-            </a>
-        </li>
-        <li>
-            <a href="contact.php">
-                <i class="fas fa-envelope"></i>
-                <span>CONTACT</span>
-            </a>
-        </li>
-    </ul>
+  @auth
+    <a href="#" id="sidebar-user-profile" class="sidebar-profile">
+      <img src="https://via.placeholder.com/50" alt="Foto Profil" class="profile-pic">
+      <div class="user-info">
+        <span class="profile-name">{{ Auth::user()->name }}</span>
+        <span class="profile-email">{{ Auth::user()->email }}</span>
+      </div>
+    </a>
+  @endauth
+</div>
 
-    <ul id="logout-menu" class="sidebar-account-menu hidden">
-        <li>
-            <a href="#" id="logout-btn">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>LOGOUT</span>
-            </a>
-        </li>
-    </ul>
+  <ul class="sidebar-menu" role="menu">
+    <li class="dropdown">
+      <a href="#" class="dropbtn-mobile" role="button" aria-expanded="false">
+        <i class="fas fa-store"></i>
+        <span>SHOP</span>
+        <i class="fas fa-chevron-down arrow-icon"></i>
+      </a>
+      <ul class="dropdown-content" role="menu">
+        <li><a href="/products">ALL PRODUCT</a></li>
+        {{-- TODO: inject kategori dari DB di sini --}}
+      </ul>
+    </li>
+
+    <li><a href="/gallery"><i class="fas fa-images"></i><span>GALLERY</span></a></li>
+    <li><a href="/about"><i class="fas fa-info-circle"></i><span>ABOUT</span></a></li>
+    <li><a href="/contact"><i class="fas fa-envelope"></i><span>CONTACT</span></a></li>
+  </ul>
+
+  @auth
+  <ul id="logout-menu" class="sidebar-account-menu">
+    <li>
+      <a href="#" id="logout-btn">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>LOGOUT</span>
+      </a>
+    </li>
+  </ul>
+@endauth
+    @guest
+      <li>
+        <a href="#" id="login-btn-popup"><i class="fas fa-user"></i><span>LOGIN</span></a>
+      </li>
+    @endguest
+  </ul>
 </nav>
 
-
-{{-- Kode untuk Overlay --}}
 <div class="page-overlay" id="page-overlay"></div>
