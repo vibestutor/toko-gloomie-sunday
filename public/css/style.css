@@ -145,7 +145,7 @@ header:not(.header-solid) .hamburger-icon {
     z-index: 1003;
     display: flex;
     flex-direction: column;
-    padding: 54px 16px 88px 16px;
+    padding: 54px 20px 88px 20px;
 }
 
 .mobile-nav.show {
@@ -212,20 +212,22 @@ header:not(.header-solid) .hamburger-icon {
 .mobile-nav ul li a {
     display: flex;
     align-items: center;
-    padding: 14px 10px;
+    padding: 14px 14px;
     margin: 5px 0;
     border-radius: 8px;
     color: #ffffff;
     text-decoration: none;
     font-size: 1rem;
     font-weight: 500;
-    gap: 18px; /* Jarak antara ikon dan teks */
+    gap: 16px; /* Jarak antara ikon dan teks */
     transition: background-color 0.2s ease, color 0.2s ease;
+    border: 1px solid transparent;
 }
 
 .mobile-nav ul li a i {
     font-size: 1.2rem;
-    width: 20px;
+    width: 24px;
+    min-width: 24px;
     text-align: center;
     opacity: 0.9;
 }
@@ -291,10 +293,6 @@ body.no-scroll { overflow: hidden; }
     transform: rotate(180deg);
 }
 
-.sidebar-menu .dropdown .dropbtn-mobile[aria-expanded="true"] .arrow-icon {
-  transform: rotate(180deg);
-}
-
 .arrow-icon {
     transition: transform 0.3s ease;
     margin-left: auto;
@@ -313,11 +311,9 @@ body.no-scroll { overflow: hidden; }
     visibility: hidden;
     transition: opacity 0.4s ease, visibility 0.4s ease;
 }
-
-.page-overlay {
-    /* ... */
-    opacity: 0;
-    visibility: hidden;
+.page-overlay.show {
+    opacity: 1;
+    visibility: visible;
 }
 
 .page-overlay.show {
@@ -448,7 +444,11 @@ header .desktop-nav-menu .dropdown-content a:hover {
     margin-bottom: 12px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
 }
-.page-overlay { display: none !important; }
+
+.sidebar-menu, .sidebar-account-menu { list-style: none; padding: 0; margin: 0; }
+.mobile-nav ul { list-style: none; padding-left: 0; }
+.mobile-nav li::marker { content: none; }
+
 
 
 /* === BAGIAN 5: BANNER RESPONSIVE (DIPERBAIKI) === */
