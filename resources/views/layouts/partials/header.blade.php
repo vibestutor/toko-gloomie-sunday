@@ -227,7 +227,7 @@
     <li><a href="/contact"><i class="fas fa-envelope"></i><span>CONTACT</span></a></li>
   </ul>
 
-  @auth
+   @auth
   <ul id="logout-menu" class="sidebar-account-menu">
     <li>
       <a href="#" id="logout-btn">
@@ -236,13 +236,7 @@
       </a>
     </li>
   </ul>
-@endauth
-    @guest
-      <li>
-        <a href="#" id="login-btn-popup"><i class="fas fa-user"></i><span>LOGIN</span></a>
-      </li>
-    @endguest
-  </ul>
+  @endauth
 </nav>
 
 <div class="page-overlay" id="page-overlay"></div>

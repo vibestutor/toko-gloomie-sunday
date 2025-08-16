@@ -10,7 +10,8 @@ html {
 }
 
 body {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 1px;
     background-color: #fff;
     color: #000;
 }
@@ -53,18 +54,20 @@ header:not(.header-solid):hover {
 }
 
 /* 3. Aturan warna teks & ikon saat header menjadi solid (baik dari awal maupun saat hover/scroll) */
-header.header-solid .desktop-nav-menu a,
+/* 3. warna saat header solid/hover/scroll – hanya top-level nav */
+header.header-solid .desktop-nav-menu > li > a,
 header.header-solid .action-icon,
 header.header-solid .hamburger-icon,
-header:not(.header-solid).scrolled .desktop-nav-menu a,
+header:not(.header-solid).scrolled .desktop-nav-menu > li > a,
 header:not(.header-solid).scrolled .action-icon,
 header:not(.header-solid).scrolled .hamburger-icon,
-header:not(.header-solid):hover .desktop-nav-menu a,
+header:not(.header-solid):hover .desktop-nav-menu > li > a,
 header:not(.header-solid):hover .action-icon,
 header:not(.header-solid):hover .hamburger-icon {
-    color: #fff;
-    stroke: #fff;
+  color: #fff;
+  stroke: #fff;
 }
+
 
 /* 4. Aturan warna teks & ikon saat header transparan (kondisi awal di homepage) */
 /* Pastikan warna ini kontras dengan banner Anda */
@@ -138,8 +141,15 @@ header:not(.header-solid) .hamburger-icon {
     left: 0;
     width: 280px;
     height: 100vh;
-    background-color: #0034b7;
-    color: #fff;
+    /* === glass look === */
+    background: rgba(255,255,255,.08);        /* dulu #0034b7 */
+    color: #0034b7;
+    border-right: 2px solid rgba(255,255,255,.35);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 6px 0 40px rgba(0,0,0,.35);
+    border-radius: 0 16px 16px 0;
+
     transform: translateX(-100%);
     transition: transform 0.4s ease;
     z-index: 1003;
@@ -156,7 +166,7 @@ header:not(.header-solid) .hamburger-icon {
   position: absolute;
   top: 8px;
   right: 12px;
-  color: #fff;
+  color: #0034b7;
   font-size: 2.5rem;
   background: none;
   border: none;
@@ -168,16 +178,17 @@ header:not(.header-solid) .hamburger-icon {
 /* Header Profil/Logo */
 .sidebar-header {
     padding: 14px 8px 18px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255,255,255,.25); /* lebih kelihatan di glass */
     margin-bottom: 12px;
 }
+
 
 .sidebar-profile {
     display: flex;
     align-items: center;
     gap: 12px;
     text-decoration: none;
-    color: #ffffff;
+    color: #0034b7;
 }
 
 .sidebar-profile .profile-pic {
@@ -214,27 +225,19 @@ header:not(.header-solid) .hamburger-icon {
     align-items: center;
     padding: 14px 14px;
     margin: 5px 0;
-    border-radius: 8px;
-    color: #ffffff;
+    border-radius: 10px;
+    color: #0034b7;
     text-decoration: none;
     font-size: 1rem;
     font-weight: 500;
-    gap: 16px; /* Jarak antara ikon dan teks */
-    transition: background-color 0.2s ease, color 0.2s ease;
-    border: 1px solid transparent;
+    gap: 16px;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    border: 1px solid rgba(255,255,255,0); /* tetap transparan */
 }
-
-.mobile-nav ul li a i {
-    font-size: 1.2rem;
-    width: 24px;
-    min-width: 24px;
-    text-align: center;
-    opacity: 0.9;
-}
-
-/* Efek Hover (Saat mouse di atas) */
 .mobile-nav ul li a:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background: #c1fc30;       /* glass-hover */
+    border-color: #c1fc30;
+    color: #0034b7;
 }
 
 /* Efek Active (Untuk halaman yang sedang dibuka) */
@@ -267,7 +270,7 @@ header:not(.header-solid) .hamburger-icon {
     max-height: 500px;
     margin-top: 4px;
     padding: 6px 0 6px 14px;
-    border-left: 2px solid rgba(255, 255, 255, 0.25);
+    border-left: 2px solid rgba(255, 255, 255, 0.35);
 }
 
 
@@ -285,7 +288,8 @@ body.no-scroll { overflow: hidden; }
 
 .mobile-nav .dropdown-content li a:hover {
     opacity: 1;
-    background-color: rgba(255, 255, 255, 0.1); /* Hover yang sama */
+    background-color: #c1fc30;
+    color: #0034b7; /* Hover yang sama */
 }
 
 /* Rotasi panah dropdown saat aktif */
@@ -417,15 +421,16 @@ body.no-scroll { overflow: hidden; }
 }
 
 .dropdown-content a:hover {
-    background-color: rgba(0, 52, 183, 0.1);
-    color: #c1fc30;
+    background-color: #c1fc30;
+    color: #0034b7;
 }
+
 header .desktop-nav-menu .dropdown-content a {
     color: #0034b7;
 }
 header .desktop-nav-menu .dropdown-content a:hover {
-    color: #c1fc30;
-    background-color: rgba(0, 52, 183, 0.1);
+    color: #0034b7;
+    background-color: #c1fc30;
 }
 }
 
@@ -870,7 +875,8 @@ header .desktop-nav-menu .dropdown-content a:hover {
 .footer {
     background-color: #0034b7;
     color: #fff;
-    font-family: 'Arial', sans-serif;
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 2px;
     padding: 30px 60px 10px;
 }
 
@@ -1010,7 +1016,7 @@ header .desktop-nav-menu .dropdown-content a:hover {
     border: 1px solid #0034b7;
     border-radius: 4px;
     background-color: #fff;
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Bebas Neue', sans-serif;
     font-size: 1rem;
 }
 
@@ -1029,7 +1035,7 @@ header .desktop-nav-menu .dropdown-content a:hover {
     border: none;
     cursor: pointer;
     text-transform: uppercase;
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Bebas Neue', sans-serif;
     font-size: 1rem;
     transition: background-color 0.3s ease;
 }
@@ -1092,7 +1098,7 @@ header .desktop-nav-menu .dropdown-content a:hover {
 /* Header Halaman Keranjang */
 .cart-header { margin-bottom: 30px; }
 .cart-header h1 {
-    font-size: 2.5em; font-family: 'Oswald', sans-serif; margin: 0;
+    font-size: 2.5em; font-family: 'Bebas Neue', sans-serif; margin: 0;
     border-bottom: 2px solid #000; padding-bottom: 10px;
 }
 
@@ -1757,7 +1763,7 @@ header .desktop-nav-menu .dropdown-content a:hover {
 /* Gaya untuk tombol logout di desktop */
 #logout-btn-desktop {
     color: #fff;
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Bebas Neue', sans-serif;
     font-weight: 600;
     text-decoration: none;
     transition: color 0.3s ease;
@@ -1818,7 +1824,7 @@ header .desktop-nav-menu .dropdown-content a:hover {
     /* Gaya visual */
     border: 1px solid #fff;
     outline: none;
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Bebas Neue', sans-serif;
     font-size: 0.9rem;
     color: #0034b7;
     background-color: #fff;
@@ -1890,7 +1896,7 @@ header .desktop-nav-menu .dropdown-content a:hover {
 }
 
 .search-suggestion-text {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Bebas Neue', sans-serif;
     font-size: 0.9rem;
     font-weight: 500;
 }
@@ -2075,18 +2081,33 @@ header .desktop-nav-menu .dropdown-content a:hover {
 
 
 /* ===== Prefs (language/currency) ===== */
-.prefs{display:flex;align-items:center;gap:8px}
-.prefs .prefs-label{font-size:12px;opacity:.7}
+.prefs{
+    display:flex;
+    align-items:center;
+    gap:8px
+}
+
+.prefs .prefs-label{
+    font-size:12px;
+    opacity:.7
+}
+
 .prefs .prefs-select{
-  appearance:none; -webkit-appearance:none;
+  appearance:none;
+  -webkit-appearance:none;
   padding:6px 28px 6px 10px;
-  border:1px solid #d0d6f6; border-radius:6px;
-  background:#fff; font:600 12px/1.2 'Oswald',sans-serif;
+  border:1px solid #d0d6f6;
+  border-radius:6px;
+  background:#fff;
+  font:600 12px/1.2 'Bebas Neue',sans-serif;
+  letter-spacing: 1px;
   min-height:32px;
 }
 
 /* Inline (desktop) di kanan header */
-.navbar-right .prefs--inline{margin-right:8px}
+.navbar-right .prefs--inline {
+    margin-right:8px
+}
 
 /* Default: sembunyikan versi mobile */
 .prefs--mobile{display:none}
@@ -2109,10 +2130,26 @@ header .desktop-nav-menu .dropdown-content a:hover {
 }
 
 .fab-prefs__btn {
-  display: flex; align-items: center; gap: 8px;
-  background: #0034b7; color: #fff; border: 0; border-radius: 999px;
-  padding: 10px 14px; cursor: pointer;
-  box-shadow: 0 8px 24px rgba(0,0,0,.18);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  border-radius: 999px;
+  /* glass look */
+  background: rgba(255,255,255,.08);
+  color: #0034b7;
+  border: 2px solid rgba(255,255,255,.35);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 8px 30px rgba(0,0,0,.35);
+  transition: background .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+
+.fab-prefs__btn:hover {
+  background: #c1fc30;
+  border-color: #c1fc30;
+  box-shadow: 0 10px 34px rgba(0,0,0,.45);
 }
 
 .fab-prefs__chev { transition: transform .2s; }
@@ -2120,24 +2157,85 @@ header .desktop-nav-menu .dropdown-content a:hover {
 
 .fab-prefs__sheet {
   position: fixed;
-  left: 16px;            /* ⬅ pindah dari right ke left */
+  left: 16px;
   bottom: 72px;
   width: 280px;
   max-height: 70vh;
   overflow: auto;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  box-shadow: 0 12px 30px rgba(0,0,0,.2);
   padding: 12px;
+  border-radius: 16px;
+  /* glass look */
+  background: rgba(255,255,255,.08);
+  border: 2px solid rgba(255,255,255,.35);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 12px 40px rgba(0,0,0,.45);
+  color: #0034b7; /* teks default di panel */
 }
 
-.fab-prefs__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.fab-prefs__close { background: transparent; border: 0; font-size: 18px; cursor: pointer; }
+.fab-prefs__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  color: #0034b7;
+}
+
+.fab-prefs__close {
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.35);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background .2s ease, border-color .2s ease;
+}
+
+.fab-prefs__close:hover {
+  background: #c1fc30;
+  border-color: #c1fc30;
+}
 
 .fab-prefs__opt {
-  display: block; width: 100%; text-align: left;
-  padding: 10px 12px; margin-bottom: 8px; cursor: pointer;
-  border: 1px solid #eee; border-radius: 8px; background: #fff;
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  border-radius: 10px;
+  color: #0034b7;
+  /* glass look */
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.25);
+  transition: background .2s ease, border-color .2s ease;
 }
-.fab-prefs__opt:hover { background: #f8fafc; }
+.fab-prefs__opt:hover {
+  background: #c1fc30;
+  border-color: #c1fc30;
+}
+
+/* Semua teks tombol bahasa & mata uang uppercase dan pakai Bebas Neue Bold */
+.fab-prefs__btn,
+.fab-prefs__opt,
+.fab-prefs__head,
+.prefs .prefs-select,
+.prefs .prefs-label {
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 1px;
+    font-weight: 700; /* Bold */
+    text-transform: uppercase;
+    letter-spacing: 0.5px; /* optional biar rapi */
+}
+
+button, input, select, textarea, a,
+.navbar, .desktop-nav-menu, .mobile-nav,
+.fab-prefs__btn, .fab-prefs__opt, .fab-prefs__head {
+  font-family: 'Bebas Neue', sans-serif !important;
+  letter-spacing: 1px;
+  font-weight: 700;  /* Bebas Neue dipakai “bold style”-nya */
+}

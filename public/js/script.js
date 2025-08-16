@@ -1,19 +1,29 @@
 // Menunggu hingga seluruh konten halaman (HTML) selesai dimuat sebelum menjalankan skrip
 document.addEventListener('DOMContentLoaded', function () {
 
-   // =======================================================
+  // =======================================================
   // HELPER (bisa dipakai di cart/search)
   // =======================================================
-  
+
+  function setPrice(el, baseIdrNumber) {
+    if (!el) return;
+    el.classList.add('price');
+    el.setAttribute('data-price', String(Math.max(0, Number(baseIdrNumber || 0))));
+    // render ulang harga (kalau currency-lang.js ada)
+    window.__pricesRefresh && window.__pricesRefresh();
+  }
+
   const parsePrice = (priceString) => {
     if (!priceString) return 0;
     return parseFloat(String(priceString).replace(/[^0-9]/g, '')) || 0;
   };
+
   const formatRupiah = (number) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency', currency: 'IDR', minimumFractionDigits: 0
     }).format(Number(number || 0));
   };
+
   const debounce = (fn, ms = 400) => {
     let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
   };
@@ -21,7 +31,6 @@ document.addEventListener('DOMContentLoaded', function () {
   // =======================================================
   // BAGIAN 0: POPUP LOGIN/REGISTER/FORGOT (BACKEND-READY)
   // =======================================================
-
   (function () {
     const wrapper = document.querySelector('.wrapper');
     const forgotWrapper = document.getElementById('forgot-password-wrapper');
@@ -31,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const iconClose = document.querySelectorAll('.icon-close');
     const forgotPasswordLink = document.querySelector('.forgot-link');
     const logoutBtnDesktop = document.getElementById('logout-btn-desktop');
-    const logoutBtnMobile  = document.getElementById('logout-btn');
+    const logoutBtnMobile = document.getElementById('logout-btn');
     const logoutForm = document.getElementById('logout-form');
 
     registerLink?.addEventListener('click', (e) => {
@@ -72,109 +81,147 @@ document.addEventListener('DOMContentLoaded', function () {
     onScroll();
   })();
 
-    // =======================================================
-  // BAGIAN 2: NAVIGASI MOBILE (SIDEBAR)
+ // =======================================================
+  // MOBILE NAV (PROD-READY)
   // =======================================================
-  const hamburgerBtn = document.getElementById('hamburger-btn');
-  const mobileMenu   = document.getElementById('mobile-menu');
-  const closeMenuBtn = document.getElementById('close-menu-btn');
-  const pageOverlay  = document.getElementById('page-overlay');
+  (function () {
+    const menu = document.getElementById('mobile-menu');
+    const overlay = document.getElementById('page-overlay');
+    const openBtn = document.getElementById('hamburger-btn');
+    const closeBtn = document.getElementById('close-menu-btn');
 
-  const toggleMenu = () => {
-    mobileMenu?.classList.toggle('show');  // class lama kamu
-    pageOverlay?.classList.toggle('show'); // overlay on/off
-  };
-  hamburgerBtn?.addEventListener('click', toggleMenu);
-  closeMenuBtn?.addEventListener('click', toggleMenu);
-  pageOverlay?.addEventListener('click', toggleMenu);
+    if (!menu || !overlay || !openBtn || !closeBtn) return;
 
-  // Dropdown kategori di mobile
-  const dropbtnMobile = document.querySelector('.dropbtn-mobile');
-  dropbtnMobile?.addEventListener('click', function (e) {
-    e.preventDefault();
-    const dropdownContent = this.nextElementSibling;
-    dropdownContent?.classList.toggle('show');
-    this.classList.toggle('active');
-  });
-
-
-     // =======================================================
-  // BAGIAN 3: SEARCH BAR (UI + BACKEND /search)
-  // =======================================================
-  const searchContainer   = document.querySelector('.search-container');
-  const searchButton      = document.querySelector('.search-btn-header');
-  const searchInputHeader = document.querySelector('.search-input-header');
-  const searchResultsBox  = document.getElementById('search-results');
-
-  // buka/tutup panel search (pakai class lama kamu)
-  if (searchContainer && searchButton && searchInputHeader) {
-    searchButton.addEventListener('click', function (e) {
-      e.preventDefault();
-      searchContainer.classList.toggle('active');
-      if (searchContainer.classList.contains('active')) {
-        searchInputHeader.focus();
-      } else {
-        searchResultsBox && (searchResultsBox.innerHTML = '');
-      }
-    });
-  }
-
-  // AJAX search → /search?q=... (server balikin JSON)
-  if (searchInputHeader && searchResultsBox) {
-    const renderResults = (items = []) => {
-      if (!items.length) {
-        searchResultsBox.innerHTML = '<div class="empty">No results</div>';
-        return;
-      }
-      searchResultsBox.innerHTML = items.map(p => `
-        <a class="search-item" href="/products/${p.slug}">
-          <img src="${p.image || '/img/placeholder.png'}" alt="">
-          <span>${p.name}</span>
-          <em>${formatRupiah(p.price || 0)}</em>
-        </a>
-      `).join('');
+    const openMenu = () => {
+      menu.classList.add('show');
+      overlay.classList.add('show');
+      menu.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('no-scroll');
+      const firstLink = menu.querySelector('a, button');
+      firstLink && firstLink.focus({ preventScroll: true });
     };
 
-    const doSearch = debounce(async () => {
-      const q = searchInputHeader.value.trim();
-      if (!q) { searchResultsBox.innerHTML = ''; return; }
-      try {
-        const res = await fetch(`/search?q=${encodeURIComponent(q)}`, {
-          headers: { 'Accept': 'application/json' }
-        });
-        if (!res.ok) throw new Error('Search failed');
-        const data = await res.json();
-        renderResults(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error(err);
-        searchResultsBox.innerHTML = '<div class="empty">Error</div>';
-      }
-    }, 400);
+    const closeMenu = () => {
+      menu.classList.remove('show');
+      overlay.classList.remove('show');
+      menu.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('no-scroll');
+      openBtn.focus({ preventScroll: true });
+    };
 
-    searchInputHeader.addEventListener('input', doSearch);
-    // klik di luar → tutup hasil
-    document.addEventListener('click', (e) => {
-      const inside = e.target.closest('.search-container');
-      if (!inside) searchResultsBox.innerHTML = '';
+    openBtn.addEventListener('click', (e) => { e.preventDefault(); openMenu(); });
+    closeBtn.addEventListener('click', (e) => { e.preventDefault(); closeMenu(); });
+    overlay.addEventListener('click', closeMenu);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && menu.classList.contains('show')) closeMenu();
     });
-  }
 
-    // =======================================================
-    // BAGIAN 4: INISIALISASI SWIPER JS UNTUK BANNER
-    // =======================================================
-    if (typeof Swiper !== 'undefined' && document.querySelector('.swiper')) {
-        const swiper = new Swiper('.swiper', {
-            loop: true,
-            autoplay: {
-                delay: 3000,
-                disableOnInteraction: false,
-            },
-            navigation: {
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
-            },
-        });
+    const dropBtn = menu.querySelector('.dropbtn-mobile');
+    const dropCt = dropBtn ? dropBtn.nextElementSibling : null;
+
+    if (dropBtn && dropCt) {
+      dropBtn.setAttribute('aria-expanded', 'false');
+      dropBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const isOpen = dropBtn.getAttribute('aria-expanded') === 'true';
+        dropBtn.setAttribute('aria-expanded', String(!isOpen));
+        dropBtn.classList.toggle('active', !isOpen);
+        dropCt.classList.toggle('show', !isOpen);
+      });
     }
+
+    const logoutBtn = document.getElementById('logout-btn');
+    const logoutForm = document.getElementById('logout-form');
+    if (logoutBtn && logoutForm) {
+      logoutBtn.addEventListener('click', (e) => { e.preventDefault(); logoutForm.submit(); });
+    }
+  })();
+
+ // =======================================================
+  // BAGIAN 3: SEARCH BAR (UI + BACKEND /search)
+  // =======================================================
+  (function () {
+    const searchContainer = document.querySelector('.search-container');
+    const searchButton = document.querySelector('.search-btn-header');
+    const searchInputHeader = document.querySelector('.search-input-header');
+    const searchResultsBox = document.getElementById('search-results');
+
+    if (searchContainer && searchButton && searchInputHeader) {
+      searchButton.addEventListener('click', function (e) {
+        e.preventDefault();
+        searchContainer.classList.toggle('active');
+        if (searchContainer.classList.contains('active')) {
+          searchInputHeader.focus();
+        } else {
+          searchResultsBox && (searchResultsBox.innerHTML = '');
+        }
+      });
+    }
+
+    if (searchInputHeader && searchResultsBox) {
+      const renderResults = (items = []) => {
+        if (!items.length) {
+          searchResultsBox.innerHTML = '<div class="empty">No results</div>';
+          return;
+        }
+        searchResultsBox.innerHTML = items.map(p => `
+          <a class="search-item" href="/products/${p.slug}">
+            <img src="${p.image || '/img/placeholder.png'}" alt="">
+            <span>${p.name}</span>
+            <em class="price" data-price="${Number(p.price || 0)}"></em>
+          </a>
+        `).join('');
+
+        // render ulang harga setelah DOM disuntik
+        window.__pricesRefresh && window.__pricesRefresh();
+      };
+
+      const doSearch = debounce(async () => {
+        const q = searchInputHeader.value.trim();
+        if (!q) { searchResultsBox.innerHTML = ''; return; }
+        try {
+          const res = await fetch(`/search?q=${encodeURIComponent(q)}`, {
+            headers: { 'Accept': 'application/json' }
+          });
+          if (!res.ok) throw new Error('Search failed');
+          const data = await res.json();
+          renderResults(Array.isArray(data) ? data : []);
+        } catch (err) {
+          console.error(err);
+          searchResultsBox.innerHTML = '<div class="empty">Error</div>';
+        }
+      }, 400);
+
+      searchInputHeader.addEventListener('input', doSearch);
+      document.addEventListener('click', (e) => {
+        const inside = e.target.closest('.search-container');
+        if (!inside) searchResultsBox.innerHTML = '';
+      });
+    }
+  })();
+
+// =======================================================
+// BAGIAN 4: INISIALISASI SWIPER JS UNTUK BANNER (safe-init)
+// =======================================================
+(function () {
+  const hasContainer = document.querySelector('.swiper'); // pastikan ada container
+  const hasSwiper = typeof window !== 'undefined' && typeof window.Swiper !== 'undefined'; // pastikan lib ada
+  if (!hasContainer || !hasSwiper) return;
+
+  // pakai `void` supaya tidak warning "unused variable"
+  void new window.Swiper('.swiper', {
+    loop: true,
+    autoplay: {
+      delay: 3000,
+      disableOnInteraction: false,
+    },
+    navigation: {
+      nextEl: '.swiper-button-next',
+      prevEl: '.swiper-button-prev',
+    },
+  });
+})();
 
 /**
  * ==========================================================
@@ -196,11 +243,11 @@ document.addEventListener('DOMContentLoaded', function () {
     return;
   }
 
-  const productImageElement = document.getElementById('product-image');
-  const productPriceElement = document.getElementById('product-price');
-  const quantityInputElement = productDetailContainer.querySelector('.quantity-input input');
-  const addToCartButton = productDetailContainer.querySelector('.btn-add-to-cart');
-  const buyNowButton = productDetailContainer.querySelector('.btn-buy-now');
+  const productImageElement   = document.getElementById('product-image');
+  const productPriceElement   = document.getElementById('product-price');
+  const quantityInputElement  = productDetailContainer.querySelector('.quantity-input input');
+  const addToCartButton       = productDetailContainer.querySelector('.btn-add-to-cart');
+  const buyNowButton          = productDetailContainer.querySelector('.btn-buy-now');
 
   // --- 2. HELPER FUNCTIONS ---
   // Fungsi utilitas diatur dalam satu objek untuk kerapian.
@@ -257,7 +304,7 @@ document.addEventListener('DOMContentLoaded', function () {
   };
 
   // --- 4. INICIALIZATION & EVENT LISTENERS ---
-  
+
   // Pilih Ukuran
   const sizeOptions = createOptionSelector('.pd-size-option', 'selected');
   sizeOptions.forEach(sizeEl => {
@@ -278,7 +325,9 @@ document.addEventListener('DOMContentLoaded', function () {
         productImageElement.src = newImage;
       }
       if (newPrice && productPriceElement) {
-        productPriceElement.textContent = utils.formatRupiah(newPrice);
+        // NOTE: setPrice diasumsikan global dari util harga kamu
+        //       (fungsi ini tidak didefinisikan di file ini)
+        setPrice(productPriceElement, newPrice); // base IDR
       }
     });
   });
@@ -288,137 +337,153 @@ document.addEventListener('DOMContentLoaded', function () {
     colorOptions[0].click();
   }
 
-  // Tombol 'Tambah ke Keranjang'
+  // --- 4b. BUTTON EVENTS ---
   addToCartButton?.addEventListener('click', () => {
     handleFormSubmit('add-to-cart');
   });
 
-  // Tombol 'Beli Sekarang'
   buyNowButton?.addEventListener('click', () => {
     handleFormSubmit('buy-now');
   });
 
-  // --- 5. LOGIC FOR SUBMITTING DATA ---
+  // --- 5. LOADING HELPER (baru, mengganti logic disable massal) ---
+  // Ganti bagian set tombol loading & submit:
+  function setLoading(btn, isLoading) {
+    if (!btn) return;
+    btn.disabled = isLoading;
+    btn.dataset.origText ??= btn.textContent;
+    btn.textContent = isLoading ? 'Memproses...' : btn.dataset.origText;
+  }
+
+  // --- 6. LOGIC FOR SUBMITTING DATA (versi revised, tanpa duplikasi) ---
   async function handleFormSubmit(action) {
     // Validasi Sisi Klien
-    if (!state.selectedSize) {
-      alert('Pilih ukuran produk terlebih dahulu.');
-      return;
-    }
+    if (!state.selectedSize) { alert('Pilih ukuran produk terlebih dahulu.'); return; }
     // Hanya validasi warna jika ada pilihan warna di halaman
-    if (colorOptions.length > 0 && !state.selectedColor) {
-      alert('Pilih warna produk terlebih dahulu.');
-      return;
-    }
+    if (colorOptions.length > 0 && !state.selectedColor) { alert('Pilih warna produk terlebih dahulu.'); return; }
+
+    // pastikan qty minimal 1
+    const qty = Math.max(1, utils.toInt(quantityInputElement?.value, 1));
 
     // Buat payload
     const payload = {
       product_id: state.productId,
       color: state.selectedColor,
       size: state.selectedSize,
-      qty: utils.toInt(quantityInputElement?.value, 1)
+      qty
     };
 
-    // Tambahkan indikator loading
-    const buttons = [addToCartButton, buyNowButton];
-    buttons.forEach(btn => {
-      if (btn) {
-        btn.disabled = true;
-        btn.textContent = 'Memproses...';
-      }
-    });
+    // Hanya disable tombol yang diklik
+    const clickedBtn = (action === 'add-to-cart') ? addToCartButton : buyNowButton;
+    setLoading(clickedBtn, true);
 
     try {
-      const response = await fetch(`/${action}`, {
+      const urlMap = { 'add-to-cart': '/add-to-cart', 'buy-now': '/buy-now' };
+      const url = urlMap[action];
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+          'Accept': 'application/json'
         },
         body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
-        // Coba baca pesan error dari backend
-        const errorData = await response.json();
-        throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
+        let msg = `HTTP ${response.status}`;
+        try { const j = await response.json(); if (j?.message) msg = j.message; } catch {}
+        throw new Error(msg);
       }
 
       const destination = { 'add-to-cart': '/cart', 'buy-now': '/checkout' };
-      if (destination[action]) {
-        window.location.href = destination[action];
-      }
+      window.location.href = destination[action];
 
     } catch (error) {
       console.error('Gagal mengirim data ke server:', error);
       alert(`Terjadi kesalahan: ${error.message}. Silakan coba lagi.`);
-      
-      // Kembalikan tombol ke keadaan semula
-      buttons.forEach(btn => {
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = (btn === addToCartButton) ? 'Tambah ke Keranjang' : 'Beli Sekarang';
-        }
-      });
+      setLoading(clickedBtn, false);
     }
   }
-
 })();
+
 
 // =======================================================
 // CART PAGE (Modal remove + auto submit qty via hidden submit button)
 // =======================================================
 (function () {
+  'use strict';
+
   const list = document.querySelector('.cart-items-list');
   if (!list) return;
 
-  // helpers
-  const parsePrice = (s) => parseInt(String(s || '').replace(/[^\d]/g, ''), 10) || 0;
-  const formatRupiah = (n) => 'Rp ' + Math.max(0, parseInt(n || 0, 10)).toLocaleString('id-ID');
-  const debounce = (fn, ms = 400) => { let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms);} };
+  // --- helpers (scoped, biar nggak tabrakan dgn global lain) ---
+  const parsePriceLocal = (s) => parseInt(String(s || '').replace(/[^\d]/g, ''), 10) || 0;
+  const debounceLocal = (fn, ms = 400) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
 
-  // modal refs
-  const overlay = document.getElementById('modal-overlay');
-  const modal   = document.getElementById('confirmation-modal');
-  const btnNo   = document.getElementById('cancel-btn');
-  const btnYes  = document.getElementById('confirm-delete-btn');
-  const modalTxt= document.getElementById('modal-text');
+  // --- modal refs ---
+  const overlay  = document.getElementById('modal-overlay');
+  const modal    = document.getElementById('confirmation-modal');
+  const btnNo    = document.getElementById('cancel-btn');
+  const btnYes   = document.getElementById('confirm-delete-btn');
+  const modalTxt = document.getElementById('modal-text');
+
+  function showModal() { overlay?.classList.remove('hidden'); modal?.classList.remove('hidden'); }
+  function hideModal() { overlay?.classList.add('hidden');   modal?.classList.add('hidden');   }
 
   let removeFormId = null;
 
-  // submit qty melalui tombol submit "asli" (hidden) -> CSRF aman
+  // submit qty via tombol submit "asli" (hidden) -> aman CSRF (Laravel)
   function submitQty(row) {
     const btn = row.querySelector('.js-submit-qty');
     if (btn) btn.click();
   }
 
-  function updateRowTotal(row){
-    const price = parsePrice(row.querySelector('.item-price')?.textContent || 'Rp 0');
-    const qty   = Math.max(1, parseInt(row.querySelector('.js-qty')?.value || '1',10));
-    const out   = row.querySelector('.item-total');
-    if (out) out.textContent = formatRupiah(price * qty);
-    updateSubtotal();
-  }
+  function updateRowTotal(row) {
+    const priceEl = row.querySelector('.item-price');
+    let unitBase = 0;
 
-  function updateSubtotal(){
-  let subtotal = 0;
-
-  document.querySelectorAll('.cart-items-list .cart-item').forEach(row => {
-    const priceText = row.querySelector('.item-price')?.textContent || '0';
-    const price = parseInt(String(priceText).replace(/[^\d]/g, ''), 10) || 0;
+    if (priceEl?.dataset?.price) {
+      // base IDR dari Blade (paling akurat)
+      unitBase = parseInt(priceEl.dataset.price, 10) || 0;
+    } else {
+      // fallback dari teks tampilan (kurang presisi kalau non-IDR)
+      unitBase = parsePriceLocal(priceEl?.textContent || '0');
+    }
 
     const qtyInput = row.querySelector('.js-qty');
     const qty = Math.max(1, parseInt(qtyInput?.value || '1', 10));
+    const out = row.querySelector('.item-total');
 
-    subtotal += price * qty;
-  });
+    if (out) setPrice(out, unitBase * qty); // pakai helper harga global kamu
+    updateSubtotal();
+  }
 
-  const el = document.getElementById('subtotal-value');
-  if (el) el.textContent = 'Rp ' + subtotal.toLocaleString('id-ID');
-}
+  function updateSubtotal() {
+    let subtotal = 0;
 
-  // klik +/− & remove
-  list.addEventListener('click', (e)=>{
+    document.querySelectorAll('.cart-items-list .cart-item').forEach(row => {
+      const priceEl = row.querySelector('.item-price');
+      let unitBase = 0;
+
+      if (priceEl?.dataset?.price) {
+        unitBase = parseInt(priceEl.dataset.price, 10) || 0;
+      } else {
+        unitBase = parsePriceLocal(priceEl?.textContent || '0');
+      }
+
+      const qtyInput = row.querySelector('.js-qty');
+      const qty = Math.max(1, parseInt(qtyInput?.value || '1', 10));
+
+      subtotal += unitBase * qty;
+    });
+
+    const el = document.getElementById('subtotal-value');
+    if (el) setPrice(el, subtotal);
+  }
+
+  // --- CLICK HANDLERS (plus/minus & remove) ---
+  list.addEventListener('click', (e) => {
     const row = e.target.closest('.cart-item');
     if (!row) return;
 
@@ -431,12 +496,15 @@ document.addEventListener('DOMContentLoaded', function () {
       e.preventDefault();
       const input = row.querySelector('.js-qty');
       if (!input) return;
+
       let v = parseInt(input.value || '1', 10) || 1;
-      if (e.target.textContent.trim() === '+') v += 1;
-      if (e.target.textContent.trim() === '-') v = Math.max(1, v - 1);
+      const label = e.target.textContent.trim();
+      if (label === '+') v += 1;
+      if (label === '-') v = Math.max(1, v - 1);
+
       input.value = v;
       updateRowTotal(row);
-      submitQty(row); // <-- kirim PATCH lewat tombol submit hidden
+      submitQty(row); // kirim PATCH via tombol submit hidden
       return;
     }
 
@@ -451,55 +519,49 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  // ketik qty manual → debounce submit
-  const debounced = debounce((row)=> submitQty(row), 500);
-  list.addEventListener('input', (e)=>{
+  // --- INPUT HANDLER (ketik qty manual → debounce submit) ---
+  const debouncedSubmit = debounceLocal((row) => submitQty(row), 500);
+  list.addEventListener('input', (e) => {
     if (!e.target.matches('.js-qty')) return;
-    const row = e.target.closest('.cart-item'); if (!row) return;
-    if (!e.target.value || parseInt(e.target.value,10) < 1) e.target.value = 1;
+    const row = e.target.closest('.cart-item'); 
+    if (!row) return;
+
+    if (!e.target.value || parseInt(e.target.value, 10) < 1) e.target.value = 1;
     updateRowTotal(row);
-    debounced(row);
+    debouncedSubmit(row);
   });
 
-  // modal actions
-  btnYes?.addEventListener('click', ()=>{
+  // --- modal actions ---
+  btnYes?.addEventListener('click', () => {
     if (removeFormId) document.getElementById(removeFormId)?.submit(); // DELETE ke server
     hideModal();
   });
   btnNo?.addEventListener('click', hideModal);
   overlay?.addEventListener('click', hideModal);
 
-  // init
+  // --- init ---
   updateSubtotal();
 })();
+
 
 // ===============================================
 // checkout.js - Logic for Checkout Page
 // ===============================================
-
 (function () {
   'use strict';
 
-  // --- 1. Helper Functions ---
+  // --- 1. Helpers ---
   const utils = {
-    /**
-     * Mengubah nilai string harga (e.g., "IDR 10.000") menjadi angka.
-     * @param {string} str - String harga.
-     * @returns {number} - Nilai angka dari harga.
-     */
-    parsePrice: (str) => {
-      // Hapus semua karakter non-digit kecuali koma dan titik.
-      const cleanStr = str.replace(/[^0-9,]/g, '').replace(',', '.');
-      return parseFloat(cleanStr) || 0;
+    // Parse "Rp 100.000" / "IDR 100.000" / "100.000" / "100,5"
+    parsePrice: (str = '') => {
+      const s = String(str)
+        .replace(/[^0-9.,]/g, '')  // keep digits, comma, dot
+        .replace(/\./g, '')        // remove thousand separators
+        .replace(',', '.');        // normalize decimal
+      return parseFloat(s) || 0;
     },
-
-    /**
-     * Format angka menjadi mata uang Rupiah standar.
-     * @param {number|string} num - Angka yang akan diformat.
-     * @returns {string} - String mata uang Rupiah.
-     */
     formatIDR: (num) => {
-      const number = parseFloat(num);
+      const number = Number(num) || 0;
       return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
@@ -508,45 +570,42 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   };
 
-  // --- 2. DOM Elements Cache ---
+  // --- 2. DOM ---
   const checkoutContainer = document.querySelector('.checkout-container');
   if (!checkoutContainer) return;
 
-  const mobileSummaryHeader = checkoutContainer.querySelector('.mobile-summary-header');
+  const mobileSummaryHeader  = checkoutContainer.querySelector('.mobile-summary-header');
   const mobileSummaryContent = checkoutContainer.querySelector('.mobile-summary-content');
 
-  // --- 3. Dynamic Province Data ---
+  // --- 3. Provinces (lengkap) ---
   const provinceData = {
-    "ID": ["Aceh", "Bali", "Banten", "Bengkulu", "DI Yogyakarta", "DKI Jakarta", "Gorontalo", "Jambi", "Jawa Barat", "Jawa Tengah", "Jawa Timur", "Kalimantan Barat", "Kalimantan Selatan", "Kalimantan Tengah", "Kalimantan Timur", "Kalimantan Utara", "Kepulauan Bangka Belitung", "Kepulauan Riau", "Lampung", "Maluku", "Maluku Utara", "Nusa Tenggara Barat", "Nusa Tenggara Timur", "Papua", "Papua Barat", "Riau", "Sulawesi Barat", "Sulawesi Selatan", "Sulawesi Tengah", "Sulawesi Tenggara", "Sulawesi Utara", "Sumatera Barat", "Sumatera Selatan", "Sumatera Utara"],
+    "ID": ["Aceh","Bali","Banten","Bengkulu","DI Yogyakarta","DKI Jakarta","Gorontalo","Jambi","Jawa Barat","Jawa Tengah","Jawa Timur","Kalimantan Barat","Kalimantan Selatan","Kalimantan Tengah","Kalimantan Timur","Kalimantan Utara","Kepulauan Bangka Belitung","Kepulauan Riau","Lampung","Maluku","Maluku Utara","Nusa Tenggara Barat","Nusa Tenggara Timur","Papua","Papua Barat","Riau","Sulawesi Barat","Sulawesi Selatan","Sulawesi Tengah","Sulawesi Tenggara","Sulawesi Utara","Sumatera Barat","Sumatera Selatan","Sumatera Utara"],
     "SG": ["Singapore"],
-    "MY": ["Johor", "Kedah", "Kelantan", "Kuala Lumpur", "Labuan", "Melaka", "Negeri Sembilan", "Pahang", "Penang", "Perak", "Perlis", "Putrajaya", "Sabah", "Sarawak", "Selangor", "Terengganu"],
-    "TH": ["Amnat Charoen", "Ang Thong", "Bangkok", "Bueng Kan", "Buri Ram", "Chachoengsao", "Chai Nat", "Chaiyaphum", "Chanthaburi", "Chiang Mai", "Chiang Rai", "Chon Buri", "Chumphon", "Kalasin", "Kamphaeng Phet", "Kanchanaburi", "Khon Kaen", "Krabi", "Lampang", "Lamphun", "Loei", "Lop Buri", "Mae Hong Son", "Maha Sarakham", "Mukdahan", "Nakhon Nayok", "Nakhon Pathom", "Nakhon Phanom", "Nakhon Ratchasima", "Nakhon Sawan", "Nakhon Si Thammarat", "Nan", "Narathiwat", "Nong Bua Lam Phu", "Nong Khai", "Nonthaburi", "Pathum Thani", "Pattani", "Phangnga", "Phatthalung", "Phayao", "Phetchabun", "Phetchaburi", "Phichit", "Phitsanulok", "Phra Nakhon Si Ayutthaya", "Phrae", "Phuket", "Prachin Buri", "Prachuap Khiri Khan", "Ranong", "Ratchaburi", "Rayong", "Roi Et", "Sa Kaeo", "Sakon Nakhon", "Samut Prakan", "Samut Sakhon", "Samut Songkhram", "Saraburi", "Satun", "Sing Buri", "Sisaket", "Songkhla", "Sukhothai", "Suphan Buri", "Surat Thani", "Surin", "Tak", "Trang", "Trat", "Ubon Ratchathani", "Udon Thani", "Uthai Thani", "Uttaradit", "Yala", "Yasothon"],
-    "PH": ["Abra", "Agusan del Norte", "Agusan del Sur", "Aklan", "Albay", "Antique", "Apayao", "Aurora", "Basilan", "Bataan", "Batanes", "Batangas", "Benguet", "Biliran", "Bohol", "Bukidnon", "Bulacan", "Cagayan", "Camarines Norte", "Camarines Sur", "Camiguin", "Capiz", "Catanduanes", "Cavite", "Cebu", "Cotabato", "Davao de Oro", "Davao del Norte", "Davao del Sur", "Davao Occidental", "Davao Oriental", "Dinagat Islands", "Eastern Samar", "Guimaras", "Ifugao", "Ilocos Norte", "Ilocos Sur", "Iloilo", "Isabela", "Kalinga", "La Union", "Laguna", "Lanao del Norte", "Lanao del Sur", "Leyte", "Maguindanao", "Marinduque", "Masbate", "Metro Manila", "Misamis Occidental", "Misamis Oriental", "Mountain Province", "Negros Occidental", "Negros Oriental", "Northern Samar", "Nueva Ecija", "Nueva Vizcaya", "Occidental Mindoro", "Oriental Mindoro", "Palawan", "Pampanga", "Pangasinan", "Quezon", "Quirino", "Rizal", "Romblon", "Samar", "Sarangani", "Siquijor", "Sorsogon", "South Cotabato", "Southern Leyte", "Sultan Kudarat", "Sulu", "Surigao del Norte", "Surigao del Sur", "Tarlac", "Tawi-Tawi", "Zambales", "Zamboanga del Norte", "Zamboanga del Sur", "Zamboanga Sibugay"],
-    "VN": ["An Giang", "Ba Ria-Vung Tau", "Bac Giang", "Bac Kan", "Bac Lieu", "Bac Ninh", "Ben Tre", "Binh Dinh", "Binh Duong", "Binh Phuoc", "Binh Thuan", "Ca Mau", "Can Tho", "Cao Bang", "Da Nang", "Dak Lak", "Dak Nong", "Dien Bien", "Dong Nai", "Dong Thap", "Gia Lai", "Ha Giang", "Ha Nam", "Ha Noi", "Ha Tinh", "Hai Duong", "Hai Phong", "Hau Giang", "Ho Chi Minh", "Hoa Binh", "Hung Yen", "Khanh Hoa", "Kien Giang", "Kon Tum", "Lai Chau", "Lam Dong", "Lang Son", "Lao Cai", "Long An", "Nam Dinh", "Nghe An", "Ninh Binh", "Ninh Thuan", "Phu Tho", "Phu Yen", "Quang Binh", "Quang Nam", "Quang Ngai", "Quang Ninh", "Quang Tri", "Soc Trang", "Son La", "Tay Ninh", "Thai Binh", "Thai Nguyen", "Thanh Hoa", "Thua Thien Hue", "Tien Giang", "Tra Vinh", "Tuyen Quang", "Vinh Long", "Vinh Phuc", "Yen Bai"],
-    "BN": ["Belait", "Brunei-Muara", "Temburong", "Tutong"],
-    "CN": ["Anhui", "Beijing", "Chongqing", "Fujian", "Gansu", "Guangdong", "Guangxi", "Guizhou", "Hainan", "Hebei", "Heilongjiang", "Henan", "Hubei", "Hunan", "Inner Mongolia", "Jiangsu", "Jiangxi", "Jilin", "Liaoning", "Ningxia", "Qinghai", "Shaanxi", "Shandong", "Shanghai", "Shanxi", "Sichuan", "Tianjin", "Tibet", "Xinjiang", "Yunnan", "Zhejiang"],
+    "MY": ["Johor","Kedah","Kelantan","Kuala Lumpur","Labuan","Melaka","Negeri Sembilan","Pahang","Penang","Perak","Perlis","Putrajaya","Sabah","Sarawak","Selangor","Terengganu"],
+    "TH": ["Amnat Charoen","Ang Thong","Bangkok","Bueng Kan","Buri Ram","Chachoengsao","Chai Nat","Chaiyaphum","Chanthaburi","Chiang Mai","Chiang Rai","Chon Buri","Chumphon","Kalasin","Kamphaeng Phet","Kanchanaburi","Khon Kaen","Krabi","Lampang","Lamphun","Loei","Lop Buri","Mae Hong Son","Maha Sarakham","Mukdahan","Nakhon Nayok","Nakhon Pathom","Nakhon Phanom","Nakhon Ratchasima","Nakhon Sawan","Nakhon Si Thammarat","Nan","Narathiwat","Nong Bua Lam Phu","Nong Khai","Nonthaburi","Pathum Thani","Pattani","Phangnga","Phatthalung","Phayao","Phetchabun","Phetchaburi","Phichit","Phitsanulok","Phra Nakhon Si Ayutthaya","Phrae","Phuket","Prachin Buri","Prachuap Khiri Khan","Ranong","Ratchaburi","Rayong","Roi Et","Sa Kaeo","Sakon Nakhon","Samut Prakan","Samut Sakhon","Samut Songkhram","Saraburi","Satun","Sing Buri","Sisaket","Songkhla","Sukhothai","Suphan Buri","Surat Thani","Surin","Tak","Trang","Trat","Ubon Ratchathani","Udon Thani","Uthai Thani","Uttaradit","Yala","Yasothon"],
+    "PH": ["Abra","Agusan del Norte","Agusan del Sur","Aklan","Albay","Antique","Apayao","Aurora","Basilan","Bataan","Batanes","Batangas","Benguet","Biliran","Bohol","Bukidnon","Bulacan","Cagayan","Camarines Norte","Camarines Sur","Camiguin","Capiz","Catanduanes","Cavite","Cebu","Cotabato","Davao de Oro","Davao del Norte","Davao del Sur","Davao Occidental","Davao Oriental","Dinagat Islands","Eastern Samar","Guimaras","Ifugao","Ilocos Norte","Ilocos Sur","Iloilo","Isabela","Kalinga","La Union","Laguna","Lanao del Norte","Lanao del Sur","Leyte","Maguindanao","Marinduque","Masbate","Metro Manila","Misamis Occidental","Misamis Oriental","Mountain Province","Negros Occidental","Negros Oriental","Northern Samar","Nueva Ecija","Nueva Vizcaya","Occidental Mindoro","Oriental Mindoro","Palawan","Pampanga","Pangasinan","Quezon","Quirino","Rizal","Romblon","Samar","Sarangani","Siquijor","Sorsogon","South Cotabato","Southern Leyte","Sultan Kudarat","Sulu","Surigao del Norte","Surigao del Sur","Tarlac","Tawi-Tawi","Zambales","Zamboanga del Norte","Zamboanga del Sur","Zamboanga Sibugay"],
+    "VN": ["An Giang","Ba Ria-Vung Tau","Bac Giang","Bac Kan","Bac Lieu","Bac Ninh","Ben Tre","Binh Dinh","Binh Duong","Binh Phuoc","Binh Thuan","Ca Mau","Can Tho","Cao Bang","Da Nang","Dak Lak","Dak Nong","Dien Bien","Dong Nai","Dong Thap","Gia Lai","Ha Giang","Ha Nam","Ha Noi","Ha Tinh","Hai Duong","Hai Phong","Hau Giang","Ho Chi Minh","Hoa Binh","Hung Yen","Khanh Hoa","Kien Giang","Kon Tum","Lai Chau","Lam Dong","Lang Son","Lao Cai","Long An","Nam Dinh","Nghe An","Ninh Binh","Ninh Thuan","Phu Tho","Phu Yen","Quang Binh","Quang Nam","Quang Ngai","Quang Ninh","Quang Tri","Soc Trang","Son La","Tay Ninh","Thai Binh","Thai Nguyen","Thanh Hoa","Thua Thien Hue","Tien Giang","Tra Vinh","Tuyen Quang","Vinh Long","Vinh Phuc","Yen Bai"],
+    "BN": ["Belait","Brunei-Muara","Temburong","Tutong"],
+    "CN": ["Anhui","Beijing","Chongqing","Fujian","Gansu","Guangdong","Guangxi","Guizhou","Hainan","Hebei","Heilongjiang","Henan","Hubei","Hunan","Inner Mongolia","Jiangsu","Jiangxi","Jilin","Liaoning","Ningxia","Qinghai","Shaanxi","Shandong","Shanghai","Shanxi","Sichuan","Tianjin","Tibet","Xinjiang","Yunnan","Zhejiang"],
     "HK": ["Hong Kong"],
-    "JP": ["Aichi", "Akita", "Aomori", "Chiba", "Ehime", "Fukui", "Fukuoka", "Fukushima", "Gifu", "Gunma", "Hiroshima", "Hokkaido", "Hyogo", "Ibaraki", "Ishikawa", "Iwate", "Kagawa", "Kagoshima", "Kanagawa", "Kochi", "Kumamoto", "Kyoto", "Mie", "Miyagi", "Miyazaki", "Nagano", "Nagasaki", "Nara", "Niigata", "Oita", "Okayama", "Okinawa", "Osaka", "Saga", "Saitama", "Shiga", "Shimane", "Shizuoka", "Tochigi", "Tokushima", "Tokyo", "Tottori", "Toyama", "Wakayama", "Yamagata", "Yamaguchi", "Yamanashi"],
-    "KR": ["Busan", "Chungcheongbuk-do", "Chungcheongnam-do", "Daegu", "Daejeon", "Gangwon-do", "Gwangju", "Gyeonggi-do", "Gyeongsangbuk-do", "Gyeongsangnam-do", "Incheon", "Jeju-do", "Jeollabuk-do", "Jeollanam-do", "Sejong", "Seoul", "Ulsan"],
-    "TW": ["Changhua", "Chiayi City", "Chiayi County", "Hsinchu City", "Hsinchu County", "Hualien", "Kaohsiung", "Keelung", "Kinmen", "Lienchiang", "Miaoli", "Nantou", "New Taipei", "Penghu", "Pingtung", "Taichung", "Tainan", "Taipei", "Taitung", "Taoyuan", "Yilan", "Yunlin"],
-    "AU": ["Australian Capital Territory", "New South Wales", "Northern Territory", "Queensland", "South Australia", "Tasmania", "Victoria", "Western Australia"],
-    "US": ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"],
-    "GB": ["England", "Northern Ireland", "Scotland", "Wales"],
-    "DE": ["Baden-Württemberg", "Bavaria", "Berlin", "Brandenburg", "Bremen", "Hamburg", "Hesse", "Lower Saxony", "Mecklenburg-Vorpommern", "North Rhine-Westphalia", "Rhineland-Palatinate", "Saarland", "Saxony", "Saxony-Anhalt", "Schleswig-Holstein", "Thuringia"]
+    "JP": ["Aichi","Akita","Aomori","Chiba","Ehime","Fukui","Fukuoka","Fukushima","Gifu","Gunma","Hiroshima","Hokkaido","Hyogo","Ibaraki","Ishikawa","Iwate","Kagawa","Kagoshima","Kanagawa","Kochi","Kumamoto","Kyoto","Mie","Miyagi","Miyazaki","Nagano","Nagasaki","Nara","Niigata","Oita","Okayama","Okinawa","Osaka","Saga","Saitama","Shiga","Shimane","Shizuoka","Tochigi","Tokushima","Tokyo","Tottori","Toyama","Wakayama","Yamagata","Yamaguchi","Yamanashi"],
+    "KR": ["Busan","Chungcheongbuk-do","Chungcheongnam-do","Daegu","Daejeon","Gangwon-do","Gwangju","Gyeonggi-do","Gyeongsangbuk-do","Gyeongsangnam-do","Incheon","Jeju-do","Jeollabuk-do","Jeollanam-do","Sejong","Seoul","Ulsan"],
+    "TW": ["Changhua","Chiayi City","Chiayi County","Hsinchu City","Hsinchu County","Hualien","Kaohsiung","Keelung","Kinmen","Lienchiang","Miaoli","Nantou","New Taipei","Penghu","Pingtung","Taichung","Tainan","Taipei","Taitung","Taoyuan","Yilan","Yunlin"],
+    "AU": ["Australian Capital Territory","New South Wales","Northern Territory","Queensland","South Australia","Tasmania","Victoria","Western Australia"],
+    "US": ["Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey","New Mexico","New York","North Carolina","North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming"],
+    "GB": ["England","Northern Ireland","Scotland","Wales"],
+    "DE": ["Baden-Württemberg","Bavaria","Berlin","Brandenburg","Bremen","Hamburg","Hesse","Lower Saxony","Mecklenburg-Vorpommern","North Rhine-Westphalia","Rhineland-Palatinate","Saarland","Saxony","Saxony-Anhalt","Schleswig-Holstein","Thuringia"]
   };
 
-  // --- 4. Event Listeners ---
-
-  // Handle toggle for mobile order summary
+  // --- 4. Mobile summary toggle ---
   mobileSummaryHeader?.addEventListener('click', () => {
-    mobileSummaryContent?.classList.toggle('expanded');
+    const expanded = mobileSummaryContent?.classList.toggle('expanded');
     const icon = mobileSummaryHeader.querySelector('.fa-chevron-down');
-    if (icon) {
-      icon.style.transform = mobileSummaryContent?.classList.contains('expanded') ? 'rotate(180deg)' : 'rotate(0deg)';
-    }
+    if (icon) icon.style.transform = expanded ? 'rotate(180deg)' : 'rotate(0deg)';
+    mobileSummaryHeader.setAttribute('aria-expanded', expanded ? 'true' : 'false');
   });
 
-  // Handle radio group selection
+  // --- 5. Radio group (billing same/different) ---
   checkoutContainer.querySelectorAll('.radio-group').forEach(group => {
     group.addEventListener('click', (e) => {
       const option = e.target.closest('.radio-option');
@@ -558,7 +617,6 @@ document.addEventListener('DOMContentLoaded', function () {
       const radioInput = option.querySelector('input[type="radio"]');
       if (radioInput) radioInput.checked = true;
 
-      // Conditional logic for billing address
       if (group.id === 'billing-address-group') {
         const billingForm = document.getElementById('billing-address-form');
         if (radioInput?.id === 'billing-different') {
@@ -570,18 +628,20 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  // --- 5. Logic for Dynamic Provinces ---
+  // --- 6. Provinces dropdown init ---
   function initializeProvincesDropdowns() {
     function init(countryId, provinceId) {
-      const countrySelect = document.getElementById(countryId);
+      const countrySelect  = document.getElementById(countryId);
       const provinceSelect = document.getElementById(provinceId);
       if (!countrySelect || !provinceSelect) return;
 
       function populateProvinces() {
-        const selectedCountryCode = countrySelect.value;
-        const provinces = provinceData[selectedCountryCode] || [];
+        const code = countrySelect.value;
+        const provinces = provinceData[code] || [];
 
+        const prev = provinceSelect.value; // try keep previous selection
         provinceSelect.innerHTML = '';
+
         if (provinces.length === 0) {
           provinceSelect.innerHTML = '<option value="">Provinsi/State tidak tersedia</option>';
           provinceSelect.disabled = true;
@@ -589,6 +649,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         provinceSelect.disabled = false;
+
         const placeholder = document.createElement('option');
         placeholder.value = '';
         placeholder.textContent = 'Pilih Provinsi/State';
@@ -596,29 +657,33 @@ document.addEventListener('DOMContentLoaded', function () {
         placeholder.selected = true;
         provinceSelect.appendChild(placeholder);
 
-        provinces.forEach(provinceName => {
-          const option = document.createElement('option');
-          option.value = provinceName;
-          option.textContent = provinceName;
-          provinceSelect.appendChild(option);
+        provinces.forEach(name => {
+          const opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          provinceSelect.appendChild(opt);
         });
+
+        // restore if still valid
+        if (provinces.includes(prev)) {
+          provinceSelect.value = prev;
+          placeholder.selected = false;
+        }
       }
 
       countrySelect.addEventListener('change', populateProvinces);
-      populateProvinces(); // Call on page load
+      populateProvinces();
     }
 
     init('shipping-country', 'shipping-province');
     init('billing-country', 'billing-province');
   }
-
   initializeProvincesDropdowns();
 
-  // --- 6. Discount Code Logic (Backend-Ready) ---
-  // Ini adalah contoh yang aman, di mana logika diskon ada di backend.
+  // --- 7. Discount Code (Backend-Ready) ---
   checkoutContainer.querySelector('#apply-discount-btn')?.addEventListener('click', async (e) => {
-    const button = e.target;
-    const input = button.previousElementSibling;
+    const button = e.currentTarget;
+    const input  = button?.previousElementSibling;
     const discountCode = input?.value.trim() || '';
 
     if (!discountCode) {
@@ -626,109 +691,152 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-    // Tampilkan loading state
+    // loading state
+    const originalText = button.textContent;
     button.disabled = true;
     button.textContent = 'Menerapkan...';
 
     try {
-      // KIRIM KODE DISKON KE BACKEND
-      const response = await fetch('/api/apply-discount', {
+      const response = await fetch('/checkout/apply-discount', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+          'Accept': 'application/json'
         },
         body: JSON.stringify({ code: discountCode })
       });
 
-      const result = await response.json();
+      let result = {};
+      try { result = await response.json(); } catch { /* ignore json errors */ }
 
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || 'Kode diskon tidak valid atau terjadi kesalahan.');
+      if (!response.ok || !result?.success) {
+        throw new Error(result?.message || 'Kode diskon tidak valid atau terjadi kesalahan.');
       }
 
-      // Backend akan mengembalikan total harga yang sudah didiskon.
-      const newSubtotal = result.data.subtotal;
-      const discountAmount = result.data.discountAmount;
-      const newTotal = result.data.total;
+      const { subtotal: newSubtotal = 0, discountAmount = 0, total: newTotal = 0 } = result.data || {};
 
-      // Update UI dengan nilai dari BACKEND
-      document.querySelectorAll('#summary-subtotal').forEach(el => el.textContent = utils.formatIDR(newSubtotal));
-      document.querySelectorAll('#summary-discount-amount').forEach(el => el.textContent = `- ${utils.formatIDR(discountAmount)}`);
+      document.querySelectorAll('#summary-subtotal').forEach(el => setPrice(el, newSubtotal));
+      document.querySelectorAll('#summary-discount-amount').forEach(el => {
+        setPrice(el, Math.abs(discountAmount)); // tampilkan positif
+      });
       document.querySelectorAll('#discount-line').forEach(el => el.classList.remove('hidden'));
-      document.querySelectorAll('#summary-total').forEach(el => el.innerHTML = `IDR <strong>${utils.formatIDR(newTotal)}</strong>`);
+      document.querySelectorAll('#summary-total').forEach(el => {
+        el.innerHTML = '<strong class="price" data-price="' + Number(newTotal || 0) + '"></strong>';
+      });
+      window.__pricesRefresh && window.__pricesRefresh();
 
       alert('Kode diskon berhasil diterapkan!');
-      
-      // Menonaktifkan input dan tombol setelah sukses
-      input.disabled = true;
+      if (input) input.disabled = true;
       button.textContent = 'Berhasil';
 
-    } catch (error) {
-      console.error('Error applying discount:', error);
-      alert(`Gagal menerapkan kode: ${error.message}`);
-      
-      // Kembalikan tombol ke keadaan semula jika gagal
+    } catch (err) {
+      console.error('Error applying discount:', err);
+      alert(`Gagal menerapkan kode: ${err.message}`);
       button.disabled = false;
-      button.textContent = 'Terapkan';
+      button.textContent = originalText;
     }
   });
-
 })();
 
- // =============================
-  // 9) FAB Language + Currency (floating)
-  // =============================
-  (function () {
-    const root  = document.getElementById('fab-prefs');
-    if (!root) return;
+// =============================
+// FAB Language + Currency (floating)
+// =============================
+(function () {
+  'use strict';
 
-    const btn   = document.getElementById('fab-prefs-btn');
-    const sheet = document.getElementById('fab-prefs-sheet');
-    const close = document.getElementById('fab-prefs-close');
-    const list  = document.getElementById('fab-prefs-list');
-    const form  = document.getElementById('fab-pref-form');
-    const fLoc  = document.getElementById('fab-locale');
-    const fCur  = document.getElementById('fab-currency');
+  const root  = document.getElementById('fab-prefs');
+  if (!root) return; // FAB tidak ada di halaman ini, skip
 
-    const open = () => { sheet.hidden = false; btn.setAttribute('aria-expanded','true'); };
-    const hide = () => { sheet.hidden = true;  btn.setAttribute('aria-expanded','false'); };
+  const btn   = document.getElementById('fab-prefs-btn');
+  const sheet = document.getElementById('fab-prefs-sheet');
+  const close = document.getElementById('fab-prefs-close');
+  const list  = document.getElementById('fab-prefs-list');
+  const form  = document.getElementById('fab-pref-form');
+  const fLoc  = document.getElementById('fab-locale');
+  const fCur  = document.getElementById('fab-currency');
 
-    btn?.addEventListener('click', (e)=>{ e.preventDefault(); sheet.hidden ? open() : hide(); });
-    close?.addEventListener('click', hide);
-    document.addEventListener('click', (e)=>{ if (!root.contains(e.target)) hide(); });
+  if (!btn || !sheet) return;
 
-    const currencyByLocale = (loc) => {
-      const n = (loc||'').toLowerCase();
-      if (n.startsWith('id')) return 'IDR';
-      if (n.startsWith('ms') || n.includes('my')) return 'MYR';
-      if (n.startsWith('th')) return 'THB';
-      if (n.startsWith('ko') || n.includes('kr')) return 'KRW';
-      if (n.startsWith('ja') || n.includes('jp')) return 'JPY';
-      if (n.startsWith('de') || n.startsWith('fr') || n.startsWith('es') || n.startsWith('it')) return 'EUR';
-      return 'USD';
-    };
+  const open = () => { sheet.hidden = false; btn.setAttribute('aria-expanded','true'); };
+  const hide = () => { sheet.hidden = true;  btn.setAttribute('aria-expanded','false'); };
 
-    const submitPref = (locale, currency) => {
-      fLoc.value = locale;
-      fCur.value = currency;
-      form.submit(); // POST ke route('pref.update')
-    };
+  // toggle open/close
+  btn.addEventListener('click', (e)=>{ e.preventDefault(); sheet.hidden ? open() : hide(); });
+  close?.addEventListener('click', hide);
+  document.addEventListener('click', (e)=>{ if (!root.contains(e.target)) hide(); });
+  document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') hide(); });
 
-    list?.addEventListener('click', (e) => {
-      const opt = e.target.closest('.fab-prefs__opt'); if (!opt) return;
+  // map locale -> default currency
+  const currencyByLocale = (loc) => {
+    const n = (loc||'').toLowerCase();
+    if (n.startsWith('id')) return 'IDR';
+    if (n.startsWith('ms') || n.includes('my')) return 'MYR';
+    if (n.startsWith('th')) return 'THB';
+    if (n.startsWith('ko') || n.includes('kr')) return 'KRW';
+    if (n.startsWith('ja') || n.includes('jp')) return 'JPY';
+    if (n.startsWith('de') || n.startsWith('fr') || n.startsWith('es') || n.startsWith('it')) return 'EUR';
+    return 'USD';
+  };
 
-      if (opt.dataset.auto) {
-        const nav = (navigator.language || 'en-US').toLowerCase(); // ex: id-ID
-        const loc = nav.split('-')[0]; // 'id'
-        const cur = currencyByLocale(nav);
-        submitPref(loc, cur);
-        return;
+  // optional: submit via hidden form (kalau mau full server-side)
+  const submitPref = (locale, currency) => {
+    if (!form || !fLoc || !fCur) return;
+    fLoc.value = locale;
+    fCur.value = currency;
+    form.submit(); // POST ke route('pref.update')
+  };
+
+  // apply preference (shared)
+  function applyPreference(loc, cur, {persist=true, sync=true} = {}) {
+    const locale   = (loc || 'id-ID');
+    const currency = (cur || currencyByLocale(locale)).toUpperCase();
+
+    if (persist) {
+      localStorage.setItem('pref_locale', locale);
+      localStorage.setItem('pref_currency', currency);
+    }
+
+    // re-render harga di UI
+    window.__pricesRefresh && window.__pricesRefresh(currency, locale);
+
+    // sync ke backend (silent)
+    if (sync) {
+      const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+      if (csrf) {
+        fetch('/pref', {
+          method:'POST',
+          headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf},
+          body: JSON.stringify({ locale, currency })
+        }).catch(()=>{ /* silent */ });
       }
-      const loc = opt.dataset.locale || 'en';
-      const cur = opt.dataset.currency || currencyByLocale(loc);
-      submitPref(loc, cur);
-    });
-  })();
+    }
+  }
 
-}); // DOMContentLoaded end
+  // click pada opsi
+  list?.addEventListener('click', (e) => {
+    const opt = e.target.closest('.fab-prefs__opt');
+    if (!opt) return;
+    e.preventDefault();
+
+    const rawLoc = opt.dataset.locale || localStorage.getItem('pref_locale') || 'id-ID';
+    const loc    = rawLoc.toLowerCase().startsWith('id') ? 'id-ID' : rawLoc;
+    const cur    = (opt.dataset.currency || currencyByLocale(loc)).toUpperCase();
+
+    applyPreference(loc, cur, {persist:true, sync:true});
+    hide();
+
+    // kalau mau pakai form hidden instead of fetch:
+    // submitPref(loc, cur);
+  });
+
+  // restore preferensi saat load (kalau ada)
+  (function restoreOnLoad(){
+    const savedLoc = localStorage.getItem('pref_locale');
+    const savedCur = localStorage.getItem('pref_currency');
+    if (savedLoc || savedCur) {
+      applyPreference(savedLoc || 'id-ID', (savedCur || currencyByLocale(savedLoc || 'id-ID')), {persist:false, sync:false});
+    }
+  })();
+})();
+});

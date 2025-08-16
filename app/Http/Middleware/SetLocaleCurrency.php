@@ -4,13 +4,25 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Session;
 
 class SetLocaleCurrency
 {
-    public function handle(Request $req, Closure $next)
+    public function handle(Request $request, Closure $next)
     {
-        app()->setLocale($req->cookie('locale', 'id'));
-        session(['currency' => $req->cookie('currency', 'IDR')]);
-        return $next($req);
+        // Ambil dari query (?lang=...&currency=...)
+        if ($request->has('lang')) {
+            App::setLocale($request->get('lang'));
+            session(['locale' => $request->get('lang')]);
+        } elseif (session()->has('locale')) {
+            App::setLocale(session('locale'));
+        }
+
+        if ($request->has('currency')) {
+            session(['currency' => strtoupper($request->get('currency'))]);
+        }
+
+        return $next($request);
     }
 }

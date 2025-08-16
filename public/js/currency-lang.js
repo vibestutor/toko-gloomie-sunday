@@ -1,120 +1,227 @@
-(function(){
+(function () {
+  // ====== CONFIG ======
   const LS = window.localStorage;
-  const RATE_TTL_MS = 30*60*1000;
   const API_BASE = 'https://api.exchangerate.host';
+  const RATE_TTL_MS = 30 * 60 * 1000; // 30 menit
+  const PREF_URL =
+    document.querySelector('meta[name="pref-url"]')?.content || '/pref';
 
-  const LOCALE_DEFAULT_CURRENCY = { 'id-ID':'IDR', 'en-US':'USD', 'en-GB':'GBP', 'en-AU':'AUD', 'en-SG':'SGD', 'en-CA':'CAD', 'ja-JP':'JPY', 'de-DE':'EUR', 'fr-FR':'EUR' };
+  // Map locale pendek -> BCP47 buat Intl
+  const LOCALE_MAP = {
+    id: 'id-ID',
+    'id-ID': 'id-ID',
+    en: 'en-US',
+    'en-US': 'en-US',
+    ms: 'ms-MY',
+    'ms-MY': 'ms-MY',
+    'ms-BN': 'ms-BN',
+    th: 'th-TH',
+    'th-TH': 'th-TH',
+    ja: 'ja-JP',
+    'ja-JP': 'ja-JP',
+    ko: 'ko-KR',
+    'ko-KR': 'ko-KR',
+    de: 'de-DE',
+    'de-DE': 'de-DE',
+    fr: 'fr-FR',
+    'fr-FR': 'fr-FR',
+  };
 
-  const parsePriceText = txt => { const digits = String(txt||'').replace(/[^0-9]/g,''); return digits?Number(digits):0; };
-  const formatCurrency = (num, currency, locale)=>{ try{ return new Intl.NumberFormat(locale||undefined,{style:'currency',currency:currency||'IDR',minimumFractionDigits:0}).format(Number(num||0)); } catch(e){ return (currency?'${currency} ':'') + (Number(num||0).toLocaleString(locale||undefined)); }};
-  const now = ()=>new Date().getTime();
+  const DEFAULT_CURRENCY_BY_LOCALE = {
+    'id-ID': 'IDR',
+    'en-US': 'USD',
+    'ms-MY': 'MYR',
+    'ms-BN': 'BND',
+    'th-TH': 'THB',
+    'ja-JP': 'JPY',
+    'ko-KR': 'KRW',
+    'de-DE': 'EUR',
+    'fr-FR': 'EUR',
+  };
 
-  const getCache = key=>{try{return JSON.parse(LS.getItem(key));}catch{return null;}};
-  const setCache = (key,val)=>LS.setItem(key,JSON.stringify(val));
+  // ====== HELPERS ======
+  const now = () => Date.now();
+  const getJSON = (k) => {
+    try { return JSON.parse(LS.getItem(k)); } catch { return null; }
+  };
+  const setJSON = (k, v) => LS.setItem(k, JSON.stringify(v));
+  const parseDigits = (txt) => Number(String(txt || '').replace(/[^0-9]/g, '') || 0);
 
-  const memRate = {};
-  async function getRate(from,to){
-    if(from===to) return 1;
-    const memKey=`${from}_${to}`;
-    if(memRate[memKey]) return memRate[memKey];
-    const lsKey=`rate_${memKey}`;
-    const cached=getCache(lsKey);
-    if(cached&&(now()-cached.t)<RATE_TTL_MS){ memRate[memKey]=cached.v; return cached.v; }
-    try{
-      const r=await fetch(`${API_BASE}/latest?base=${encodeURIComponent(from)}&symbols=${encodeURIComponent(to)}`);
-      const j=await r.json();
-      const v=(j&&j.rates&&j.rates[to])?j.rates[to]:1;
-      memRate[memKey]=v;
-      setCache(lsKey,{v,t:now()});
-      return v;
-    }catch(err){console.warn('Rate fetch failed:',err); return 1;}
+  function normalizeLocale(loc) {
+    if (!loc) return 'id-ID';
+    return LOCALE_MAP[loc] || loc;
   }
 
-  async function populateCurrencies(select){
-    if(!select) return;
-    try{
-      const r=await fetch(`${API_BASE}/symbols`);
-      const j=await r.json();
-      const symbols=j.symbols||{};
-      const common=['IDR','USD','EUR','JPY','SGD','AUD','GBP','MYR'];
-      const frag=document.createDocumentFragment();
-      const addOpt=(code,desc)=>{const o=document.createElement('option'); o.value=code;o.textContent=`${desc} (${code})`;frag.appendChild(o);};
-      common.forEach(c=>{if(symbols[c])addOpt(c,symbols[c].description);});
-      Object.keys(symbols).filter(c=>!common.includes(c)).sort().forEach(c=>addOpt(c,symbols[c].description));
-      select.innerHTML=''; select.appendChild(frag);
-    }catch(err){
-      console.warn('Currency symbols fetch failed:',err);
-      select.innerHTML=`<option value="IDR">Indonesian Rupiah (IDR)</option><option value="USD">US Dollar (USD)</option><option value="EUR">Euro (EUR)</option><option value="JPY">Japanese Yen (JPY)</option>`;
+  function formatMoney(amount, currency, locale) {
+    try {
+      return new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency,
+        minimumFractionDigits: (currency === 'IDR' || currency === 'JPY' || currency === 'KRW') ? 0 : 2,
+      }).format(Number(amount || 0));
+    } catch {
+      return `${currency} ${Number(amount || 0).toLocaleString(locale)}`;
     }
   }
 
-  function initialPrefs(){
-    const savedLocale=LS.getItem('pref_locale');
-    const savedCurrency=LS.getItem('pref_currency');
-    if(savedLocale && savedCurrency) return {locale:savedLocale,currency:savedCurrency};
-    const navLoc=navigator.language||'id-ID';
-    const locale=(['id','in'].includes(navLoc.split('-')[0])?'id-ID':navLoc);
-    const currency=LOCALE_DEFAULT_CURRENCY[locale]||'IDR';
-    return {locale,currency};
+  function setCookie(name, value, days){
+  const d = new Date();
+  d.setTime(d.getTime() + (days * 24*60*60*1000));
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${d.toUTCString()}; path=/`;
+}
+
+
+  // ====== RATE CACHE ======
+  const memRate = {};
+  async function getRate(from, to) {
+    if (from === to) return 1;
+    const key = `rate_${from}_${to}`;
+    if (memRate[key]) return memRate[key];
+
+    const cached = getJSON(key);
+    if (cached && (now() - cached.t) < RATE_TTL_MS) {
+      memRate[key] = cached.v;
+      return cached.v;
+    }
+
+    try {
+      const r = await fetch(`${API_BASE}/latest?base=${encodeURIComponent(from)}&symbols=${encodeURIComponent(to)}`);
+      const j = await r.json();
+      const v = j?.rates?.[to] ?? 1;
+      memRate[key] = v;
+      setJSON(key, { v, t: now() });
+      return v;
+    } catch {
+      return 1;
+    }
   }
 
-  function setCookie(name,value,days){
-    const d=new Date(); d.setTime(d.getTime()+(days*24*60*60*1000));
-    document.cookie=`${name}=${encodeURIComponent(value)}; expires=${d.toUTCString()}; path=/`;
-  }
+ // ====== RENDER SEMUA HARGA ======
+async function renderAll(currency, locale){
+  const nodes = document.querySelectorAll('.price,[data-price]');
+  const rate  = await getRate('IDR', currency);
 
-  async function renderAll(currency,locale){
-    const nodes=document.querySelectorAll('.price,[data-price]');
-    const rate=await getRate('IDR',currency);
-    nodes.forEach(el=>{
-      if(!el.dataset.basePrice){
-        const base=el.dataset.price?Number(el.dataset.price):parsePriceText(el.textContent);
-        el.dataset.basePrice=String(base||0);
-        if(!el.dataset.price) el.dataset.price=el.dataset.basePrice;
+  nodes.forEach(el => {
+    // sumber base price: data-price / data-base-price
+    let base = el.dataset.basePrice ?? el.dataset.price;
+
+    if (base == null) {
+      // fallback sekali dari teks (strip angka), lalu simpan
+      const digits = String(el.textContent || '').replace(/[^0-9.]/g, '');
+      base = digits ? Number(digits) : 0;
+      el.dataset.basePrice = String(base);
+    }
+
+    const baseNum   = Number(base) || 0;
+    const converted = baseNum * rate;
+
+    el.textContent = formatMoney(converted, currency, locale);
+
+    if (!el.dataset.basePrice) el.dataset.basePrice = String(baseNum);
+  });
+
+  // persist preferensi di klien
+  LS.setItem('pref_currency', currency);
+  LS.setItem('pref_locale',  locale);
+  setCookie('pref_currency', currency, 365);
+  setCookie('pref_locale',  locale,   365);
+
+  // beri tahu skrip lain bahwa harga sudah dirender
+  document.dispatchEvent(new Event('prices:rendered'));
+}
+
+// helper agar skrip lain bisa memicu render ulang
+window.__pricesRefresh = async (cur, loc) => {
+  const currency = (cur || LS.getItem('pref_currency') || 'IDR').toUpperCase();
+  const locale   =  loc || LS.getItem('pref_locale')    || 'id-ID';
+  await renderAll(currency, locale);
+};
+
+// ====== OBSERVE DOM (node/atribut baru) ======
+function observe(){
+  const obs = new MutationObserver((muts)=>{
+    const hasNewPrice = muts.some(m => {
+      if (m.type === 'attributes' && (m.attributeName === 'data-price' || m.attributeName === 'data-base-price')) {
+        return true;
       }
-      const baseIDR=Number(el.dataset.basePrice||0);
-      el.textContent=formatCurrency(baseIDR*rate,currency,locale);
+      return Array.from(m.addedNodes||[]).some(n =>
+        n.nodeType === 1 && (n.matches?.('.price,[data-price]') || n.querySelector?.('.price,[data-price]')));
     });
-    LS.setItem('pref_currency',currency);
-    LS.setItem('pref_locale',locale);
-    setCookie('pref_currency',currency,365);
-    setCookie('pref_locale',locale,365);
-    const csrf=document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-    if(csrf) fetch('/prefs',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf},body:JSON.stringify({currency,locale})}).catch(()=>{});
+    if (hasNewPrice) {
+      const cur = (LS.getItem('pref_currency') || 'IDR').toUpperCase();
+      const loc = LS.getItem('pref_locale') || 'id-ID';
+      renderAll(cur, loc);
+    }
+  });
+  obs.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-price','data-base-price'] });
+}
+
+  // ====== SYNC KE BACKEND (SESSION) ======
+  async function syncToServer(locale, currency) {
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+    if (!csrf) return;
+
+    // Controller @update expect "locale" & "currency"
+    try {
+      await fetch(PREF_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrf,
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ locale, currency }),
+        credentials: 'same-origin',
+      });
+    } catch {
+      // diam aja; UI tetap jalan berbasis localStorage
+    }
   }
 
-  function observe(){
-    const obs=new MutationObserver(muts=>{
-      const hasNewPrice=muts.some(m=>Array.from(m.addedNodes||[]).some(n=>n.nodeType===1 && (n.matches?.('.price,[data-price]')||n.querySelector?.('.price,[data-price]'))));
-      if(hasNewPrice){
-        const currency=LS.getItem('pref_currency')||'IDR';
-        const locale=LS.getItem('pref_locale')||'id-ID';
-        renderAll(currency,locale);
-      }
+  // ====== EVENT: KLIK FAB OPTION ======
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.fab-prefs__opt');
+    if (!btn) return;
+
+    // auto location? (skip – belum implement geo)
+    if (btn.dataset.auto) return;
+
+    const locRaw = btn.dataset.locale || LS.getItem('pref_locale') || 'id-ID';
+    const loc = normalizeLocale(locRaw);
+    const cur = (btn.dataset.currency || DEFAULT_CURRENCY_BY_LOCALE[loc] || 'IDR').toUpperCase();
+
+    await renderAll(cur, loc);
+    syncToServer(loc, cur);
+  });
+
+  // ====== FALLBACK: <select id="langSelect"> & <select id="currencySelect"> ======
+  function wireSelects() {
+    const langSel = document.getElementById('langSelect');
+    const curSel  = document.getElementById('currencySelect');
+
+    langSel?.addEventListener('change', async (e) => {
+      const loc = normalizeLocale(e.target.value);
+      const cur = curSel?.value || DEFAULT_CURRENCY_BY_LOCALE[loc] || 'IDR';
+      await renderAll(cur, loc);
+      wireSelects();
+      observe();
+      syncToServer(loc, cur);
     });
-    obs.observe(document.body,{childList:true,subtree:true});
+
+    curSel?.addEventListener('change', async (e) => {
+      const cur = (e.target.value || 'IDR').toUpperCase();
+      const loc = normalizeLocale(langSel?.value || LS.getItem('pref_locale') || 'id-ID');
+      await renderAll(cur, loc);
+      syncToServer(loc, cur);
+    });
   }
 
-  async function boot(){
-    const {locale,currency}=initialPrefs();
-    const langSel=document.getElementById('langSelect');
-    const curSel=document.getElementById('currencySelect');
-    if(curSel) await populateCurrencies(curSel);
-    if(langSel) langSel.value=locale;
-    if(curSel) curSel.value=currency;
-    await renderAll(currency,locale);
-    observe();
-    langSel?.addEventListener('change',async e=>{
-      const newLocale=e.target.value;
-      const currentCurrency=curSel?.value||LOCALE_DEFAULT_CURRENCY[newLocale]||'IDR';
-      await renderAll(currentCurrency,newLocale);
-    });
-    curSel?.addEventListener('change',async e=>{
-      const newCurrency=e.target.value;
-      const currentLocale=langSel?.value||(LS.getItem('pref_locale')||'id-ID');
-      await renderAll(newCurrency,currentLocale);
-    });
-  }
+  // ====== BOOT ======
+  document.addEventListener('DOMContentLoaded', async () => {
+    const loc = normalizeLocale(LS.getItem('pref_locale') || document.querySelector('meta[name="app-locale"]')?.content || 'id-ID');
+    const cur = (LS.getItem('pref_currency') || document.querySelector('meta[name="app-currency"]')?.content || DEFAULT_CURRENCY_BY_LOCALE[loc] || 'IDR').toUpperCase();
 
-  document.addEventListener('DOMContentLoaded',boot);
+    await renderAll(cur, loc);
+    wireSelects();
+  });
 })();

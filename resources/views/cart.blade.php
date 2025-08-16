@@ -34,37 +34,43 @@
                   - {{ $item->variant->name }}
                 @endif
               </p>
-              <p class="item-price">Rp {{ number_format($item->price_snapshot,0,',','.') }}</p>
+
+              {{-- HARGA SATUAN (base IDR) --}}
+              <p class="item-price price"
+                 data-price="{{ $item->price_snapshot }}">
+                {{ money($item->price_snapshot) }}
+              </p>
+
               @if(optional($item->variant)->size)
                 <p class="item-size">Ukuran: {{ $item->variant->size }}</p>
               @endif
             </div>
           </div>
 
-<form method="POST" action="{{ route('cart.update', $item) }}" class="quantity-input">
-  @csrf
-  @method('PATCH')
+          <form method="POST" action="{{ route('cart.update', $item) }}" class="quantity-input">
+            @csrf
+            @method('PATCH')
 
-  <button type="button" class="quantity-btn js-minus">-</button>
-  <input class="js-qty" type="number" name="qty" value="{{ $item->qty }}" min="1">
-  <button type="button" class="quantity-btn js-plus">+</button>
+            <button type="button" class="quantity-btn js-minus">-</button>
+            <input class="js-qty" type="number" name="qty" value="{{ $item->qty }}" min="1">
+            <button type="button" class="quantity-btn js-plus">+</button>
 
-  {{-- tombol submit beneran, disembunyiin --}}
-  <button type="submit" class="js-submit-qty" style="display:none"></button>
-</form>
+            {{-- tombol submit beneran, disembunyiin --}}
+            <button type="submit" class="js-submit-qty" style="display:none"></button>
+          </form>
 
+          <form method="POST" id="remove-{{ $item->id }}" action="{{ route('cart.remove', $item) }}">
+            @csrf
+            @method('DELETE')
+            <button class="remove-btn" type="button" data-remove="remove-{{ $item->id }}">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </form>
 
-<form method="POST" id="remove-{{ $item->id }}" action="{{ route('cart.remove', $item) }}">
-  @csrf
-  @method('DELETE')
-  <button class="remove-btn" type="button" data-remove="remove-{{ $item->id }}">
-    <i class="fas fa-trash-alt"></i>
-  </button>
-</form>
-          </div>
-
-          <div class="item-total">
-            Rp {{ number_format($item->qty * $item->price_snapshot,0,',','.') }}
+          {{-- TOTAL PER BARIS (qty × price, base IDR) --}}
+          <div class="item-total price"
+               data-price="{{ $item->qty * $item->price_snapshot }}">
+            {{ money($item->qty * $item->price_snapshot) }}
           </div>
         </div>
       @empty
@@ -77,9 +83,16 @@
     <div class="summary-box">
       <div class="subtotal-line">
         <span class="label">Subtotal</span>
-        <span class="value" id="subtotal-value">Rp {{ number_format($subtotal,0,',','.') }}</span>
+
+        {{-- SUBTOTAL (base IDR) --}}
+        <span class="value price" id="subtotal-value"
+              data-price="{{ $subtotal }}">
+          {{ money($subtotal) }}
+        </span>
       </div>
+
       <p class="summary-note">Taxes and shipping costs are calculated at checkout.</p>
+
       <div class="cart-action-buttons">
         <a href="{{ route('products.index') }}" class="continue-shopping-btn">Continue Shopping</a>
 
@@ -91,7 +104,7 @@
     </div>
   </div>
 
-  {{-- modal konfirmasi hapus (markup kamu tetap) --}}
+  {{-- modal konfirmasi hapus --}}
   <div id="modal-overlay" class="hidden"></div>
   <div id="confirmation-modal" class="hidden">
     <h3>Remove Item?</h3>
@@ -102,13 +115,10 @@
     </div>
   </div>
 
-  {{-- FEATURED COLLECTION (biarin markup lama; opsional ganti href ke route produk) --}}
+  {{-- FEATURED COLLECTION (biarin dulu) --}}
   <div id="home-featured">
     <h2 class="title">FEATURED COLLECION</h2>
     <div class="featured-grid">
-      {{-- contoh ganti 1 link ke route produk by slug (opsional): --}}
-      {{-- <a href="{{ route('products.show', ['product' => 'crewneck-breaker-1']) }}"> --}}
-      {{-- sisanya boleh kamu biarkan dulu sesuai HTML lama --}}
       {!! /* Tempel blok featured product HTML kamu di sini tanpa perubahan */ '' !!}
     </div>
     <div class="view-all-container">

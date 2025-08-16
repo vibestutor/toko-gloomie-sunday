@@ -32,7 +32,12 @@
     <section class="pd-details">
         <p id="product-brand" class="pd-brand">GLOOMIE SUNDAY</p>
         <h1 id="product-title" class="pd-title">{{ $product->name }}</h1>
-        <p id="product-price" class="pd-price">Rp {{ number_format((float)$product->price, 0, ',', '.') }}</p>
+        <p id="product-price"
+   class="pd-price price"
+   data-price="{{ $product->price }}">
+  {{ money($product->price) }}
+</p>
+
 
 <div class="pd-selection-group">
 
@@ -116,8 +121,7 @@
                 </div>
                 <div class="product-description">
                     <h3>{{ $related->name }}</h3>
-                    <span class="price">Rp {{ number_format((float)$related->price, 0, ',', '.') }}</span>
-                </div>
+                    <span class="price">{{ money($product->price) }}</span>
             </div>
         @empty
             <p style="grid-column: 1 / -1; text-align: center;">Tidak ada produk terkait.</p>

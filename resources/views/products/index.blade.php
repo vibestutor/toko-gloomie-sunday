@@ -28,7 +28,10 @@
                         {{-- Nama produk dari database --}}
                         <h3>{{ $product->name }}</h3>
                         {{-- Harga dari database, diformat ke Rupiah --}}
-                        <span class="price">Rp {{ number_format($product->price, 0, ',', '.') }}</span>
+                        <span class="price" data-price="{{ $product->price }}">
+  {{ money($product->price) }}
+</span>
+
                     </div>
                 </div>
             @empty
